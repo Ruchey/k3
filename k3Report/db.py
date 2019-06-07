@@ -2,6 +2,9 @@
 __author__ = 'Виноградов А.Г. г.Белгород  август 2015'
 
 
+import pypyodbc
+
+
 class DB:
 
     def __init__(self, pathDB):

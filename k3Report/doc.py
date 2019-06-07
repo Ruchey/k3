@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Виноградов А.Г. г.Белгород  август 2015'
 
+import openpyxl
+import os
+
+from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font, NamedStyle
+from openpyxl.utils.units import cm_to_EMU, EMU_to_inch
+
 
 class DocOpenpyxl:
     """Создание документа Excel
@@ -31,6 +37,7 @@ class DocOpenpyxl:
         self.fontsize = 12
         self.displayzeros = True
         
+        self.generatestyles()
    
     def newsheet(self, name, tabcolor=1):
         """Добавление листа"""
@@ -39,7 +46,7 @@ class DocOpenpyxl:
             self.ws.title = name[:31]
             self.first = False
         else:
-            self.ws.create_sheet(name[:31])
+            self.wb.create_sheet(name[:31])
             
         self.ws.page_setup.orientation = self.sheetorient
         self.ws.page_setup.paperSize = self.papersize
@@ -49,7 +56,6 @@ class DocOpenpyxl:
         self.ws.page_margins.bottom = EMU_to_inch(cm_to_EMU(self.bottommargin))
         self.ws.print_options.horizontalCentered = self.centerhorizontally
         
-        self.generatestyles()
         
         #self.Excel.ActiveWindow.DisplayZeros = self.displayzeros
     
