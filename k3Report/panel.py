@@ -5,7 +5,7 @@ import itertools
 import math
 
 from collections import namedtuple
-
+import time
 
 def float_int(num):
     'Убираем нули после точки, если число целое'
@@ -529,26 +529,28 @@ class Panel:
         return decorname
 
 
+
     def cnt_drill_pans(self, tpp=None, hingoff=False):
         '''Получить кол-во просверленных деталей. Сверловка с двух сторон считается, как две детали
            hingoff = True - Считать вместе с присадкой под петли
         '''
-        filtrtpp = "WHERE te.TopParentPos={}".format(tpp) if tpp is not None else ""
-        sql = "SELECT Sum(te.Count) AS cnt FROM (SELECT DISTINCT th.UnitPos FROM THoles AS th WHERE ABS(MatrA33)<0.001 AND "\
-              "(ABS(MatrA13)<0.001 OR ABS (MatrA23)<0.001) AND UnitPos IN (SELECT UnitPos FROM TPanels) "\
-              "UNION "\
-              "SELECT DISTINCT th.UnitPos FROM THoles AS th WHERE ABS(MatrA13)<0.001 AND ABS(MatrA23)<0.001 AND UnitPos IN (SELECT UnitPos FROM TPanels) AND MatrA33<0 "\
-              "UNION "\
-              "SELECT DISTINCT th.UnitPos FROM THoles AS th WHERE ABS(MatrA13)<0.001 AND ABS(MatrA23)<0.001 AND UnitPos IN (SELECT UnitPos FROM TPanels) AND MatrA33>0)  AS holes "\
-              "LEFT JOIN TElems AS te ON holes.UnitPos = te.UnitPos {0}".format(filtrtpp)
+        filtrtpp = "AND TElems.TopParentPos={0}".format(tpp) if tpp is not None else ""
+        # Выбор сверловки всего, кроме стороны F
+        sql_exF = "SELECT DISTINCT th.UnitPos FROM THoles AS th LEFT JOIN TElems ON th.UnitPos = TElems.UnitPos " \
+                  "WHERE (th.MatrA33<=0 AND (th.UnitPos In (SELECT UnitPos FROM TPanels)) {0})".format(filtrtpp)
+        # Выбор отвертий в пласти F
+        sql_F = "SELECT DISTINCT th.UnitPos FROM THoles AS th LEFT JOIN TElems ON th.UnitPos = TElems.UnitPos " \
+              "WHERE (Abs(th.MatrA13)<0.001 AND Abs(th.MatrA23)<0.001 AND th.MatrA33>0 " \
+              "AND th.UnitPos In (SELECT UnitPos FROM TPanels) {0})".format(filtrtpp)
         
-        res = self.db.rs(sql)
-        if not res:
-            return 0
+        sql_un = " UNION ".join([sql_exF, sql_F])
+        sql = "SELECT Count(*) FROM ({})".format(sql_un)
+        res = self.db.rs(sql)[0][0]
+        
         if hingoff==True:
-            return res[0][0] - self.cnt_pan_hings(tpp=tpp)
+            return res - self.cnt_pan_hings(tpp=tpp)
         else:
-            return res[0][0]
+            return res
     
     
     def cnt_holes_pan(self, unitpos, hingoff=False):
