@@ -1,24 +1,25 @@
 # -*- coding: utf-8 -*-
+
+import utils
+from collections import namedtuple
+
+
 __author__ = 'Виноградов А.Г. г.Белгород  август 2015'
 
 
 class Nomenclature:
-    '''Класс работы с номенклатурой'''
+    """Класс работы с номенклатурой"""
     
     def __init__(self, db):
-        try:
-            self.db = db
-        except:
-            return None
 
+        self.db = db
 
     def accbyuid(self, uid=None, tpp=None):
-        '''Выводит список аксессуаров
+        """Выводит список аксессуаров
             uid = id единицы измерения
             tpp = TopParentPos ID верхнего хозяина аксессуара
             Вывод: ID, Name, Article, UnitsName, Count, Price
-        '''
-        
+        """
         filtruid = "AND tnn.UnitsID={}".format(uid) if uid else ""
         filtrtpp = "AND te.TopParentPos={}".format(tpp) if tpp else ""
         where = " ".join(["tnn.UnitsID<>11", filtruid, filtrtpp])
@@ -36,13 +37,12 @@ class Nomenclature:
             dres.append(dict(zip(keys,i)))
         return dres
 
-
     def acclong(self, tpp=None):
-        '''Список погонажных комплектующих, таких как сетки
+        """Список погонажных комплектующих, таких как сетки
            tpp = TopParentPos ID верхнего хозяина аксессуара
-           ID, Название, артикль, ед.изм., длина, кол-во, цена'''
-        
-        filtrtpp = ("WHERE te.TopParentPos={}".format(tpp) if tpp else '')
+           ID, Название, артикль, ед.изм., длина, кол-во, цена
+        """
+        filtrtpp = ('WHERE te.TopParentPos={}'.format(tpp) if tpp else '')
         keys = ('ID', 'Name', 'Article', 'UnitsName', 'Length', 'Count', 'Price')
         sql = "SELECT tnn.ID, tnn.Name, tnn.Article, tnn.UnitsName, te.XUnit/1000, te.Count, tnn.Price FROM TElems AS te " \
               "INNER JOIN TNNomenclature AS tnn ON te.PriceID = tnn.ID WHERE te.FurnType Like '07%' {0} ORDER BY te.Name".format(filtrtpp)
@@ -52,12 +52,11 @@ class Nomenclature:
             dres.append(dict(zip(keys,i)))
         return dres
 
-
     def matbyuid(self, uid, tpp=None):
-        '''Выводит список ID материалов
+        """Выводит список ID материалов
             uid = id единицы измерения
-            tpp = TopParentPos ID верхнего хозяина материала'''
-        
+            tpp = TopParentPos ID верхнего хозяина материала
+        """
         where = "{0} AND te.TopParentPos={1}".format(uid, tpp) if tpp else "{}".format(uid)
         sql = "SELECT tnn.ID FROM TElems AS te INNER JOIN TNNomenclature AS tnn ON te.PriceID = tnn.ID " \
               "WHERE tnn.UnitsID={} GROUP BY tnn.ID".format(where)
@@ -68,32 +67,31 @@ class Nomenclature:
             id.append(i[0])
         return id
 
-
     def properties(self, id=0):
-        '''Список всех свойств номенклатурной единицы в виде словаря'''
+        """Список всех свойств номенклатурной единицы в виде словаря"""
         
-        keys = ('Name', 'Article', 'UnitsID', 'UnitsName', 'Price', 'MatTypeID')
+        keys = ('name', 'article', 'unitsid', 'unitsname', 'price', 'mattypeid')
         frm = "TNProperties AS tnp INNER JOIN TNPropertyValues AS tnpv ON tnp.ID = tnpv.PropertyID"
         
-        sql1 = "SELECT tnp.Ident, tnpv.DValue FROM {0} WHERE (tnp.TypeID in (1,7) AND tnpv.EntityID={1});".format(frm, id)
-        sql2 = "SELECT tnp.Ident, tnpv.IValue FROM {0} WHERE (tnp.TypeID in (3,6,11,17,18) AND tnpv.EntityID={1});".format(frm, id)
-        sql3 = "SELECT tnp.Ident, tnpv.SValue FROM {0} WHERE (tnp.TypeID in (5,12,13,14,15,16) AND tnpv.EntityID={1});".format(frm, id)
+        sql1 = "SELECT LCase(tnp.Ident), tnpv.DValue FROM {0} WHERE (tnp.TypeID in (1,7) AND tnpv.EntityID={1});".format(frm, id)
+        sql2 = "SELECT LCase(tnp.Ident), tnpv.IValue FROM {0} WHERE (tnp.TypeID in (3,6,11,17,18) AND tnpv.EntityID={1});".format(frm, id)
+        sql3 = "SELECT LCase(tnp.Ident), tnpv.SValue FROM {0} WHERE (tnp.TypeID in (5,12,13,14,15,16) AND tnpv.EntityID={1});".format(frm, id)
         sql4 = "SELECT Name, Article, UnitsID, UnitsName, Price, MatTypeID FROM TNNomenclature AS tnn WHERE tnn.ID={0}".format(id)
         
         res1 = self.db.rs(sql1)
         res2 = self.db.rs(sql2)
         res3 = self.db.rs(sql3)
         res4 = list(zip(keys,self.db.rs(sql4)[0]))
-            
-        return dict(res1 + res2 + res3 + res4)
-    
-    
+        res = utils.normkeyprop(res1 + res2 + res3 + res4)
+        prop = namedtuple('prop', [x[0] for x in res])
+        return prop(**dict(res))
+
     def property_name(self, id, prop):
-        '''Получить значение именованного сво-ва
+        """Получить значение именованного сво-ва
            id - номер материала
-           prop - имя свойства'''
-        
-        keys = ('ID', 'Name', 'MatTypeID', 'MatTypeName', 'GroupID', 'GroupName', 'KindID', \
+           prop - имя свойства
+        """
+        keys = ('ID', 'Name', 'MatTypeID', 'MatTypeName', 'GroupID', 'GroupName', 'KindID',
                 'KindName', 'Article', 'UnitsID', 'UnitsName', 'Price', 'ParentID', 'GLevel')
         sql1 = "SELECT Switch([tnp].[TypeID]=1,[tnpv].[DValue],[tnp].[TypeID]=3,[tnpv].[IValue]," \
               "[tnp].[TypeID]=5,[tnpv].[SValue],[tnp].[TypeID]=6,[tnpv].[IValue],[tnp].[TypeID]=7,[tnpv].[DValue]," \
@@ -113,18 +111,16 @@ class Nomenclature:
         else:
             return None
 
-
     def sqm(self, id, tpp=None):
-        '''Определяем кол-во площадного материала'''
+        """Определяем кол-во площадного материала"""
         
         where = "{0} AND te.TopParentPos={1}".format(id, tpp) if tpp else "{}".format(id)
         sql = "SELECT Sum((XUnit*YUnit*Count)/10^6) AS sqr FROM TElems AS te WHERE te.PriceID={}".format(where)
         res = self.db.rs(sql)
         return res[0][0]
 
-
     def matcount(self, id, tpp=None):
-        '''Выводит кол-во материала'''
+        """Выводит кол-во материала"""
         
         cnt = None
         # Проверим, является ли материал аксессуаром
@@ -139,11 +135,11 @@ class Nomenclature:
 
         return cnt
 
-
     def bands(self, add=0, tpp=None):
-        '''Информация по кромке: длина, толщина торца, ID материала
+        """Информация по кромке: длина, толщина торца, ID материала
             add - добавочная длина кромки на торец для отходов
-            tpp - ID хозяина кромки'''
+            tpp - ID хозяина кромки
+        """
         filtrtpp = ("WHERE te.TopParentPos={}".format(tpp) if tpp else '')
         keys = ('Length', 'Thickness', 'ID')
         sql = "SELECT Sum((tb.Length+{0})*(te.Count))/10^3, tb.Width, te.PriceID " \

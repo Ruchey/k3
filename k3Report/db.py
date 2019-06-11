@@ -29,4 +29,4 @@ class DB:
             rows = self.cur.fetchall()
             return rows
         except:
-            return None
+            return []

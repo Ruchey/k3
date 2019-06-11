@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Виноградов А.Г. г.Белгород  август 2015'
 
 import itertools
 import math
 
 from collections import namedtuple
-import time
+
+
+__author__ = 'Виноградов А.Г. г.Белгород  август 2015'
+
 
 def float_int(num):
     'Убираем нули после точки, если число целое'
-    
+
     if type(num) != 'float':
         return num
-    
+
     if num.is_integer():
         return int(num)
     else:
@@ -101,7 +103,7 @@ class Panel:
 
     def width(self, unitpos):
         '''Ширина с кромкой'''
-        
+
         sql = "SELECT width FROM TPanels WHERE unitpos = {}".format(unitpos)
         res = self.db.rs(sql)
         if len(res) > 0:
@@ -112,7 +114,7 @@ class Panel:
 
     def planelength(self, unitpos):
         '''Длина без кромки'''
-        
+
         sql = "SELECT planelength FROM TPanels WHERE unitpos = {}".format(unitpos)
         res = self.db.rs(sql)
         if len(res) > 0:
@@ -340,14 +342,13 @@ class Panel:
 
     def sumcost(self, unitpos):
         '''Стоимость элемента'''
-        
+
         sql = "SELECT sumcost FROM TElems WHERE unitpos = {}".format(unitpos)
         res = self.db.rs(sql)
         if len(res) > 0:
             return float_int(res[0][0])
         else:
             return 0
-        
 
 
     def svw(self, unitpos):
@@ -425,7 +426,7 @@ class Panel:
         b_thickPan = 0      # толщина панели
         b_thick = 0         # толщина кромки
         b_cnt = 0
-        
+
         # определим тип панели
         # PanPolyType: 1 - полилиния 2 - прямоугольная 3 - четырёхугольная
         sql = "SELECT tpm.NumValue FROM TParams AS tpm WHERE (tpm.unitpos = {} AND tpm.ParamName='PanPolyType' AND tpm.HoldTable='TPanels')".format(unitpos)
@@ -456,7 +457,7 @@ class Panel:
                 sql = "SELECT tnpv.DValue FROM TNPropertyValues AS tnpv WHERE tnpv.PropertyID=10 AND tnpv.EntityID={}".format(b_priceID)
                 res = self.db.rs(sql)
                 if res:
-                    b_thick = (res[0][0])            
+                    b_thick = (res[0][0])
         return band(b_priceID, b_name, b_width, b_thickPan, b_thick, b_cnt)
 
 
@@ -469,14 +470,14 @@ class Panel:
 
     def band_c(self, unitpos):
         '''информация о кромке торца C'''
-        
+
         res = self.band_side(unitpos, 3, 1)
         return res
 
 
     def band_d(self, unitpos):
         '''информация о кромке торца D'''
-        
+
         res = self.band_side(unitpos, 1, 1)
         return res
 
@@ -504,11 +505,11 @@ class Panel:
             12 - дополнение 2
             -1 - все стороны
             -2 - все торцы'''
-        
+
         sql = "SELECT td.materialid, td.typename, tnn.name FROM TDecorates AS td LEFT JOIN TNNomenclature AS tnn ON td.materialid=tnn.id " \
               "WHERE unitpos = {} AND map = {}".format(unitpos, map)
         decor = self.db.rs(sql)
-        abr = {'шпон':'шп.', 'эмаль':'эм.', 'пластик':'пл.', 'плёнка (пвх)':'ПВХ ', 'патина':'пт.', 'морилка':'мор.', 'лак':''}
+        abr = {'шпон': 'шп.', 'эмаль': 'эм.', 'пластик': 'пл.', 'плёнка (пвх)': 'ПВХ ', 'патина': 'пт.', 'морилка': 'мор.', 'лак': ''}
         rep = ["шп.", "шпон", "Шпон", "эм.", "Эм.", "эмаль", "Эмаль"]
         cntdec = len(decor)
         decorname = ""
@@ -527,7 +528,6 @@ class Panel:
                 decorname += "+"
 
         return decorname
-
 
 
     def cnt_drill_pans(self, tpp=None, hingoff=False):
@@ -551,8 +551,8 @@ class Panel:
             return res - self.cnt_pan_hings(tpp=tpp)
         else:
             return res
-    
-    
+
+
     def cnt_holes_pan(self, unitpos, hingoff=False):
         '''Получить кол-во отверстий конкретной панели
            hingoff - Считать вместе с присадкой под петли или исключить петли
@@ -560,20 +560,20 @@ class Panel:
         sql = "SELECT Count(*) FROM THoles WHERE THoles.UnitPos={0}".format(unitpos)
         res = self.db.rs(sql)
         if not res:
-            return 0        
+            return 0
         if hingoff==True:
             return res[0][0] - self.cnt_holes_hings(unitpos=unitpos)
         else:
             return res[0][0]
-    
-    
+
+
     def cnt_holes_pan_diam(self, unitpos, d):
         '''Получить кол-во отверстий определённого диаметра конкретной панели'''
         
         sql = "SELECT Count(*) FROM THoles WHERE THoles.UnitPos={0} AND THoles.Diameter={1}".format(unitpos, d)
         res     = self.db.rs(sql)
         if not res:
-            return 0        
+            return 0
         return res[0][0]
 
 
@@ -594,10 +594,10 @@ class Panel:
               "AND th.Diameter > 20 {0}".format(filtrup+filtrtpp)
         res     = self.db.rs(sql)
         if not res:
-            return 0        
+            return 0
         return res[0][0]
-    
-    
+
+
     def cnt_hings_x(self, unitpos):
         '''Количество петель вдоль панели'''
         
@@ -605,10 +605,10 @@ class Panel:
               "AND th.Diameter > 20 AND th.UnitPos = {0} GROUP BY th.MatrA24 HAVING Count(1)>1".format(unitpos)
         res = self.db.rs(sql)
         if not res:
-            return 0        
+            return 0
         return res[0][0]
-    
-    
+
+
     def cnt_hings_y(self, unitpos):
         '''Количество петель поперёк панели'''
         
@@ -616,10 +616,10 @@ class Panel:
               "AND th.Diameter > 20 AND th.UnitPos = {0} GROUP BY th.MatrA14 HAVING Count(1)>1".format(unitpos)
         res = self.db.rs(sql)
         if not res:
-            return 0        
+            return 0
         return res[0][0]
-    
-    
+
+
     def cnt_pan_hings(self, tpp=None):
         '''Получить кол-во деталей с присадкой только под петли (без других отв.)
            tpp=TopParentPos - id родительского объекта
@@ -633,14 +633,15 @@ class Panel:
               "FROM THoles AS th LEFT JOIN TElems AS te ON th.HolderPos = te.UnitPos WHERE (te.FurnType) not Like '0406%' {0}))".format(filtrtpp)
         res = self.db.rs(sql)
         if not res:
-            return 0        
+            return 0
         return res[0][0]
 
     def cnt_chamfer_pan(self, unitpos):
         '''Определение кол-ва скосов углов на панеле'''
-        
+
         sql = "SELECT Count(*) FROM TParams WHERE ParamName = 'Cuttype' AND NumValue = 1 AND UnitPos = {0}".format(unitpos)
         res = self.db.rs(sql)
         if not res:
-            return 0        
+            return 0
         return res[0][0]
+
