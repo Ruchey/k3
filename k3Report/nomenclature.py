@@ -18,12 +18,12 @@ class Nomenclature:
         """Выводит список аксессуаров
             uid = id единицы измерения
             tpp = TopParentPos ID верхнего хозяина аксессуара
-            Вывод: ID, Name, Article, UnitsName, Count, Price
+            Вывод: id, name, article, unitsname, count, price
         """
         filtruid = "AND tnn.UnitsID={}".format(uid) if uid else ""
         filtrtpp = "AND te.TopParentPos={}".format(tpp) if tpp else ""
         where = " ".join(["tnn.UnitsID<>11", filtruid, filtrtpp])
-        keys = ('ID', 'Name', 'Article', 'UnitsName', 'Count', 'Price')
+        keys = ('id', 'name', 'article', 'unitsname', 'count', 'price')
 
         sql = "SELECT ID, [Name], Article, UnitsName, Sum(Cnt/IIf(UnitsID=10,accCnt,1)), Price FROM " \
               "(SELECT tnn.ID, tnn.Name, tnn.Article, tnn.UnitsID, tnn.UnitsName, (te.Count) AS Cnt, tnn.Price, " \
@@ -34,7 +34,8 @@ class Nomenclature:
         res = self.db.rs(sql)
         dres = []
         for i in res:
-            dres.append(dict(zip(keys,i)))
+            ac = namedtuple('ac', keys)
+            dres.append(ac(*i))
         return dres
 
     def acclong(self, tpp=None):
@@ -43,13 +44,14 @@ class Nomenclature:
            ID, Название, артикль, ед.изм., длина, кол-во, цена
         """
         filtrtpp = ('WHERE te.TopParentPos={}'.format(tpp) if tpp else '')
-        keys = ('ID', 'Name', 'Article', 'UnitsName', 'Length', 'Count', 'Price')
+        keys = ('id', 'name', 'article', 'unitsname', 'length', 'count', 'price')
         sql = "SELECT tnn.ID, tnn.Name, tnn.Article, tnn.UnitsName, te.XUnit/1000, te.Count, tnn.Price FROM TElems AS te " \
               "INNER JOIN TNNomenclature AS tnn ON te.PriceID = tnn.ID WHERE te.FurnType Like '07%' {0} ORDER BY te.Name".format(filtrtpp)
         res = self.db.rs(sql)
         dres = []
         for i in res:
-            dres.append(dict(zip(keys,i)))
+            ac = namedtuple('ac', keys)
+            dres.append(ac(*i))
         return dres
 
     def matbyuid(self, uid, tpp=None):
@@ -62,10 +64,13 @@ class Nomenclature:
               "WHERE tnn.UnitsID={} GROUP BY tnn.ID".format(where)
         
         res = self.db.rs(sql)
-        id = []
-        for i in res:
-            id.append(i[0])
-        return id
+        if res:
+            id = []
+            for i in res:
+                id.append(i[0])
+            return id
+        else:
+            return res
 
     def properties(self, id=0):
         """Список всех свойств номенклатурной единицы в виде словаря"""
@@ -112,41 +117,50 @@ class Nomenclature:
             return None
 
     def sqm(self, id, tpp=None):
-        """Определяем кол-во площадного материала"""
+        "Определяем кол-во площадного материала"
         
         where = "{0} AND te.TopParentPos={1}".format(id, tpp) if tpp else "{}".format(id)
         sql = "SELECT Sum((XUnit*YUnit*Count)/10^6) AS sqr FROM TElems AS te WHERE te.PriceID={}".format(where)
         res = self.db.rs(sql)
-        return res[0][0]
+        if res:
+            return res[0][0]
+        else:
+            return 0
 
     def matcount(self, id, tpp=None):
-        """Выводит кол-во материала"""
+        "Выводит кол-во материала"
         
-        cnt = None
+        cnt = 0
         # Проверим, является ли материал аксессуаром
         sql = "SELECT Count(AccMatID) FROM TAccessories WHERE TAccessories.AccMatID={}".format(id)
         res = self.db.rs(sql)
-        if res[0][0]>0:
-            cnt = self.accbyuid(id, tpp)
-        else:
-            unit = self.property_name(id, 'UnitsID')
-            if unit == 2:               # Квадратные метры
-                cnt = self.sqm(id, tpp)
-
+        if res:
+            if res[0][0]>0:
+                cnt = self.accbyuid(id, tpp)
+            else:
+                unit = self.property_name(id, 'UnitsID')
+                if unit == 2: # Квадратные метры
+                    cnt = self.sqm(id, tpp)
         return cnt
 
     def bands(self, add=0, tpp=None):
-        """Информация по кромке: длина, толщина торца, ID материала
-            add - добавочная длина кромки на торец для отходов
-            tpp - ID хозяина кромки
+        """Информация по кромке.
+           Входные данные:
+           add - добавочная длина кромки в мм на торец для отходов
+           tpp - ID хозяина кромки
+           Выходные данные:
+           id - ID материала
+           length - длина
+           thick - толщина торца
         """
         filtrtpp = ("WHERE te.TopParentPos={}".format(tpp) if tpp else '')
-        keys = ('Length', 'Thickness', 'ID')
-        sql = "SELECT Sum((tb.Length+{0})*(te.Count))/10^3, tb.Width, te.PriceID " \
+        keys = ('length', 'thick', 'id')
+        sql = "SELECT Round(Sum((tb.Length+{0})*(te.Count))/10^3, 2), tb.Width, te.PriceID " \
               "FROM TBands AS tb INNER JOIN TElems AS te ON tb.UnitPos = te.UnitPos {1} " \
               "GROUP BY tb.Width, te.PriceID".format(add, filtrtpp)
         res = self.db.rs(sql)
         dres = []
         for i in res:
-            dres.append(dict(zip(keys,i)))
+            ac = namedtuple('ac', keys)
+            dres.append(ac(*i))
         return dres
