@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import utils
+from . import utils
 from collections import namedtuple
 
 
