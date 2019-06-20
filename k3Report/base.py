@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+
+from . import utils
+from collections import namedtuple
+
+
 __author__ = 'Виноградов А.Г. г.Белгород  август 2015'
 
 
@@ -12,7 +17,7 @@ class Base:
 
     def torderinfo(self):
         sql = "SELECT * FROM TOrderInfo"
-        res = self.db.recordset(sql)
+        res = self.db.rs(sql)
         keys = ('OrderID', 'OrderName', 'OrderNumber', 'Customer', 'Address', \
                 'TelephoneNumber', 'OrderData', 'OrderExpirationData', 'Firm', \
                 'Salon', 'Acceptor', 'Executor', 'AdditionalInfo', 'ToWorking')
@@ -25,7 +30,7 @@ class Base:
         '''Данные из таблицы объектов TObjects'''
         filtrup = ('WHERE UnitPos = {}'.format(up) if up else '')
         sql = "SELECT * FROM TObjects {}".format(filtrup)
-        res = self.db.recordset(sql)
+        res = self.db.rs(sql)
         keys = ('UnitPos', 'PlaceType', 'Article', 'ExArticle', 'IsStandart', \
                 'Cataloque', 'Library', 'LibName', 'LibCaption', 'ProtoID', 'BasePrice')
         dres = []
@@ -36,17 +41,20 @@ class Base:
     def telems(self, UnitPos):
         sql = "SELECT ParentPos, TopParentPos, DetailPos, CommonPos, LevelPos, FurnType, FurnKind, [Name], PriceID, " \
               "GoodsID, SumCost, XUnit, YUnit, ZUnit, [Count], [Data], HashCode FROM TElems WHERE UnitPos={}".format(UnitPos)
-        keys = ('ParentPos', 'TopParentPos', 'DetailPos', 'CommonPos', 'LevelPos', 'FurnType', 'FurnKind', 'Name', \
-                'PriceID', 'GoodsID', 'SumCost', 'XUnit', 'YUnit', 'ZUnit', 'Count', 'Data', 'HashCode')
-        val = self.db.recordset(sql)
-        res = dict(zip(keys,val[0]))
-        return res
+        keys = ('parentpos', 'topparentpos', 'detailpos', 'commonpos', 'levelpos', 'furntype', 'furnkind', 'name', \
+                'priceid', 'goodsid', 'sumcost', 'xunit', 'yunit', 'zunit', 'count', 'data', 'hashcode')
+        res = self.db.rs(sql)
+        dres = []
+        for i in res:
+            telems = namedtuple('telems', keys)
+            dres.append(telems(*i))
+        return dres
 
     def tdrawings(self, up=None):
         '''Все данные из таблицы TDrawings'''
         filtrup = ('WHERE UnitPos = {}'.format(up) if up else '')
         sql = "SELECT * FROM TDrawings {}".format(filtrup)
-        res = self.db.recordset(sql)
+        res = self.db.rs(sql)
         keys = ('UnitPos', 'DrawingName', 'DrawingDescr', 'SizeX', 'SizeY')
         dres = []
         for i in res:
@@ -57,14 +65,14 @@ class Base:
         '''Таблица атрибутов'''
         sql ="SELECT atr.Name, Switch(AttrType=1,AttrString,AttrType=2,AttrReal,AttrType=3,AttrText,AttrType=4,AttrReal) AS val " \
              "FROM TAttributes AS atr WHERE atr.UnitPos={}".format(up)
-        res = dict(self.db.recordset(sql))
+        res = dict(self.db.rs(sql))
         return res
 
     def tngoods(self, id=None):
         '''Данные из таблицы TNGoods'''
         filtrid = ('WHERE ID = {}'.format(id) if id else '')
         sql = "SELECT * FROM TNGoods {}".format(filtrid)
-        res = self.db.recordset(sql)
+        res = self.db.rs(sql)
         keys = ('ID', 'Name', 'GroupID', 'GroupName', 'FurnType', 'ParentID', 'GLevel')
         dres = []
         for i in res:
@@ -76,7 +84,7 @@ class Base:
         sql = "SELECT * FROM TOrderInfo"
         keys = ('OrderID', 'OrderName', 'OrderNumber', 'Customer', 'Address', 'TelephoneNumber', 'OrderData', \
                 'OrderExpirationData', 'Firm', 'Salon', 'Acceptor', 'Executor', 'AdditionalInfo', 'ToWorking')
-        val = self.db.recordset(sql)
+        val = self.db.rs(sql)
         res = dict(zip(keys,val[0]))
         return res
     
@@ -85,6 +93,6 @@ class Base:
         sql = "SELECT * FROM TNNomenclature WHERE ID = {0}".format(id)
         keys = ('ID', 'Name', 'MatTypeID', 'MatTypeName', 'GroupID', 'GroupName', 'KindID', \
                 'KindName', 'Article', 'UnitsID', 'UnitsName', 'Price', 'ParentID', 'GLevel')
-        val = self.db.recordset(sql)
+        val = self.db.rs(sql)
         res = dict(zip(keys,val[0]))
         return res

@@ -73,7 +73,15 @@ class Nomenclature:
             return res
 
     def properties(self, id=0):
-        """Список всех свойств номенклатурной единицы в виде словаря"""
+        """Возвращает именованный кортеж свойств номенклатурной единицы
+        properties.name
+        properties.article
+        properties.unitsid
+        properties.unitsname
+        properties.price
+        properties.mattypeid
+        properties.
+        """
         
         keys = ('name', 'article', 'unitsid', 'unitsname', 'price', 'mattypeid')
         frm = "TNProperties AS tnp INNER JOIN TNPropertyValues AS tnpv ON tnp.ID = tnpv.PropertyID"
@@ -86,10 +94,15 @@ class Nomenclature:
         res1 = self.db.rs(sql1)
         res2 = self.db.rs(sql2)
         res3 = self.db.rs(sql3)
-        res4 = list(zip(keys,self.db.rs(sql4)[0]))
+        res4 = self.db.rs(sql4)
+        if res4:
+            res4 = list(zip(keys,self.db.rs(sql4)[0]))
         res = utils.normkeyprop(res1 + res2 + res3 + res4)
-        prop = namedtuple('prop', [x[0] for x in res])
-        return prop(**dict(res))
+        if res:
+            prop = namedtuple('prop', [x[0] for x in res])
+            return prop(**dict(res))
+        else:
+            return None
 
     def property_name(self, id, prop):
         """Получить значение именованного сво-ва

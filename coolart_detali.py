@@ -61,35 +61,35 @@ def makereport(tpp=None):
     listGLS = []
     for i in matid:
         prop = nm.properties(i)
-        if prop['MatTypeID'] == 128:
+        if prop.mattypeid == 128:
             listDSP.append(prop)
-            listDSP.sort(key=lambda x: int(x['Thickness']), reverse=True)
-        elif prop['MatTypeID'] == 64:
+        elif prop.mattypeid == 64:
             listMDF.append(prop)
-            listMDF.sort(key=lambda x: int(x['Thickness']), reverse=True)
-        elif prop['MatTypeID'] == 37:
+        elif prop.mattypeid == 37:
             listDVP.append(prop)
-            listDVP.sort(key=lambda x: int(x['Thickness']), reverse=True)
-        elif prop['MatTypeID'] in [48, 99]:
+        elif prop.mattypeid in [48, 99]:
             listGLS.append(prop)
-            listGLS.sort(key=lambda x: int(x['Thickness']), reverse=True)
         else:
             listmat.append(prop)
-            listmat.sort(key=lambda x: [int(x['MatTypeID']),int(x['Thickness'])], reverse=True)
 
     if listDSP:
+        listDSP.sort(key=lambda x: x.thickness, reverse=True)
         rep_pan('ДСП', listDSP, tpp)
 
     if listMDF:
+        listMDF.sort(key=lambda x: x.thickness, reverse=True)
         rep_pan('МДФ', listMDF, tpp)
 
     if listDVP:
+        listDVP.sort(key=lambda x: x.thickness, reverse=True)
         rep_pan('ДВП', listDVP, tpp)
 
     if listGLS:
+        listGLS.sort(key=lambda x: x.thickness, reverse=True)
         rep_pan('Стекло', listGLS, tpp)
 
     if listmat:
+        listmat.sort(key=lambda x: [x.mattypeid,x.thickness], reverse=True)
         rep_pan('Прочее', listmat, tpp)
 
 
