@@ -28,10 +28,18 @@ def list_pan(matid, tpp=None):
         pans = {}
         if pn.form(idpan) == 0:
             telems = bs.telems(idpan)
-            pans['name'] = telems['Name']
-            pans['cnt'] = telems['Count']
+            matprop = nm.properties(matid)
+            pans['name'] = telems.name
+            pans['thickness'] = matprop.thickness
+            pans['article'] = matprop.article
             pans['length'] = pn.planelength(idpan)
             pans['width'] = pn.planewidth(idpan)
+            pans['cnt'] = telems.count
+            pans['band_x1']
+            pans['band_x2']
+            pans['band_y1']
+            pans['band_y2']
+            pans['note']
             pdir = pn.dir(idpan)
 
 
@@ -40,8 +48,8 @@ def rep_pan(name, mat, tpp=None):
     newsheet(name)
     row = 1
     for i, imat in enumerate(mat):
-        for l in list_pan(imat['ID'], tpp):
-            val = (i+1, l['name'], imat['Thickness'], imat['Article'], l['length'], l['width'], l['cnt'], \
+        for l in list_pan(imat.id, tpp):
+            val = (i+1, l['name'], imat.thickness, imat.article, l['length'], l['width'], l['cnt'], \
                    l['band_x1'], l['band_x2'], l['band_y1'], l['band_y2'], l['comment']
                    )
             xl.putval(row, 1, val)
@@ -118,4 +126,5 @@ if __name__=='__main__':
 
     fileDB = r'd:\К3\Самара\Самара черновик\1\1.mdb'
     projreppath = r'd:\К3\Самара\Самара черновик\1\Reports'
+    fuga = 0.5
     start(fileDB, projreppath)

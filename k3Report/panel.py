@@ -489,6 +489,54 @@ class Panel:
         return res
 
 
+    def band_x1(self, unitpos):
+        "Кромка вдоль длины одной стороны с учётом текстуры"
+        
+        pdir = self.dir(unitpos)
+        if (45<pdir<=135):
+            return self.band_b(unitpos)
+        elif (225<pdir<=315):
+            return self.band_c(unitpos)
+        else:
+            return self.band_e(unitpos)
+
+
+    def band_x2(self, unitpos):
+        "Кромка вдоль длины одной стороны с учётом текстуры"
+        
+        pdir = self.dir(unitpos)
+        if (45<pdir<=135):
+            return self.band_c(unitpos)
+        elif (225<pdir<=315):
+            return self.band_b(unitpos)
+        else:
+            return self.band_d(unitpos)
+
+
+    def band_y1(self, unitpos):
+        "Кромка вдоль длины одной стороны с учётом текстуры"
+        
+        pdir = self.dir(unitpos)
+        if (45<pdir<=135):
+            return self.band_e(unitpos)
+        elif (225<pdir<=315):
+            return self.band_d(unitpos)
+        else:
+            return self.band_b(unitpos)
+
+
+    def band_y2(self, unitpos):
+        "Кромка вдоль длины одной стороны с учётом текстуры"
+        
+        pdir = self.dir(unitpos)
+        if (45<pdir<=135):
+            return self.band_d(unitpos)
+        elif (225<pdir<=315):
+            return self.band_e(unitpos)
+        else:
+            return self.band_c(unitpos)
+
+
     def decorates(self, unitpos, map=5):
         '''Определяет отделку панели выбранной карты map:
             1 - сторона E (Y+)
