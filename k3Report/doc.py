@@ -26,7 +26,7 @@ class DocOpenpyxl:
         self.first = True
         
         self.sheetorient = self.PORTRAIT
-        self.papersize = self.ws.PAPERSIZE_A4        
+        self.papersize = self.ws.PAPERSIZE_A4
         self.rightmargin = 1.8
         self.leftmargin = 1.8
         self.bottommargin = 1.9
@@ -46,7 +46,8 @@ class DocOpenpyxl:
             self.ws.title = name[:31]
             self.first = False
         else:
-            self.wb.create_sheet(name[:31])
+            self.ws = self.wb.create_sheet(name[:31])
+            
             
         self.ws.page_setup.orientation = self.sheetorient
         self.ws.page_setup.paperSize = self.papersize
@@ -72,7 +73,7 @@ class DocOpenpyxl:
         
         for s in styles:
             font = Font(name=self.font, size=self.fontsize, bold=s['bold'], italic=s['italic'], vertAlign=s['vertAlign'], underline='none', strike=False, color=s['text_color'])
-            fill = PatternFill(fill_type='solid', start_color=s['sc'], end_color=s['ec'])        
+            fill = PatternFill(fill_type='solid', start_color=s['sc'], end_color=s['ec'])
             border = Border(left=Side(border_style=None, color=s['bc']),
                                  right=Side(border_style=None, color=s['bc']),
                                  top=Side(border_style=None, color=s['bc']),
@@ -317,6 +318,16 @@ class DocOpenpyxl:
         pic.Top = valign[ver]
         pic.Left = halign[hor]
         pic.LockAspectRatio = 1
+
+    def putval(self, row=1, column=1, value=''):
+        """Запись данных в ячейки"""
+        
+        if type(value) in (list, tuple):
+            for col, val in enumerate(value):
+                self.ws.cell(row, column+col, val)
+        else:
+            self.ws.cell(row, column, value)
+        return row+1
 
     def printarea(self, rw, clm, ln, hg):
         '''Задаёт область печати'''

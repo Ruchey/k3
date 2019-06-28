@@ -43,12 +43,9 @@ class Base:
               "GoodsID, SumCost, XUnit, YUnit, ZUnit, [Count], [Data], HashCode FROM TElems WHERE UnitPos={}".format(UnitPos)
         keys = ('parentpos', 'topparentpos', 'detailpos', 'commonpos', 'levelpos', 'furntype', 'furnkind', 'name', \
                 'priceid', 'goodsid', 'sumcost', 'xunit', 'yunit', 'zunit', 'count', 'data', 'hashcode')
-        res = self.db.rs(sql)
-        dres = []
-        for i in res:
-            telems = namedtuple('telems', keys)
-            dres.append(telems(*i))
-        return dres
+        res = self.db.rs(sql)[0]
+        telems = namedtuple('telems', keys)
+        return telems(*res)
 
     def tdrawings(self, up=None):
         '''Все данные из таблицы TDrawings'''

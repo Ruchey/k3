@@ -16,20 +16,11 @@ nm = k3Report.nomenclature.Nomenclature(db)
 lg = k3Report.longs.Longs(db)
 bs = k3Report.base.Base(db)
 
-#res = bs.telems(2547)
+res = pn.slots_y_par(320)
+a = "Паз по X {0}".format("; ".join(list(map('{0.beg}ш{0.width}г{0.depth}'.format, res))))
 #res = nm.properties(8426)
-un = [298, 302, 306]
 
-for unitpos in un:
-    b = {
-         'x1': pn.band_x1(unitpos),
-         'x2': pn.band_x2(unitpos),
-         'y1': pn.band_y1(unitpos),
-         'y2': pn.band_y2(unitpos)
-    }
-    pprint(b)
-    print('')
-
+pprint(a)
 
 
 

@@ -32,11 +32,11 @@ class Nomenclature:
               "ON ta.UnitPos = te.UnitPos WHERE {0}) GROUP BY ID, [Name], Article, UnitsName, Price " \
               "ORDER BY [Name]".format(where)
         res = self.db.rs(sql)
-        dres = []
+        lres = []
         for i in res:
             ac = namedtuple('ac', keys)
-            dres.append(ac(*i))
-        return dres
+            lres.append(ac(*i))
+        return lres
 
     def acclong(self, tpp=None):
         """Список погонажных комплектующих, таких как сетки
@@ -48,11 +48,11 @@ class Nomenclature:
         sql = "SELECT tnn.ID, tnn.Name, tnn.Article, tnn.UnitsName, te.XUnit/1000, te.Count, tnn.Price FROM TElems AS te " \
               "INNER JOIN TNNomenclature AS tnn ON te.PriceID = tnn.ID WHERE te.FurnType Like '07%' {0} ORDER BY te.Name".format(filtrtpp)
         res = self.db.rs(sql)
-        dres = []
+        lres = []
         for i in res:
             ac = namedtuple('ac', keys)
-            dres.append(ac(*i))
-        return dres
+            lres.append(ac(*i))
+        return lres
 
     def matbyuid(self, uid, tpp=None):
         """Выводит список ID материалов
@@ -83,13 +83,13 @@ class Nomenclature:
         properties.
         """
         
-        keys = ('name', 'article', 'unitsid', 'unitsname', 'price', 'mattypeid')
+        keys = ('id', 'name', 'article', 'unitsid', 'unitsname', 'price', 'mattypeid')
         frm = "TNProperties AS tnp INNER JOIN TNPropertyValues AS tnpv ON tnp.ID = tnpv.PropertyID"
         
         sql1 = "SELECT LCase(tnp.Ident), tnpv.DValue FROM {0} WHERE (tnp.TypeID in (1,7) AND tnpv.EntityID={1});".format(frm, id)
         sql2 = "SELECT LCase(tnp.Ident), tnpv.IValue FROM {0} WHERE (tnp.TypeID in (3,6,11,17,18) AND tnpv.EntityID={1});".format(frm, id)
         sql3 = "SELECT LCase(tnp.Ident), tnpv.SValue FROM {0} WHERE (tnp.TypeID in (5,12,13,14,15,16) AND tnpv.EntityID={1});".format(frm, id)
-        sql4 = "SELECT Name, Article, UnitsID, UnitsName, Price, MatTypeID FROM TNNomenclature AS tnn WHERE tnn.ID={0}".format(id)
+        sql4 = "SELECT ID, Name, Article, UnitsID, UnitsName, Price, MatTypeID FROM TNNomenclature AS tnn WHERE tnn.ID={0}".format(id)
         
         res1 = self.db.rs(sql1)
         res2 = self.db.rs(sql2)
@@ -172,8 +172,8 @@ class Nomenclature:
               "FROM TBands AS tb INNER JOIN TElems AS te ON tb.UnitPos = te.UnitPos {1} " \
               "GROUP BY tb.Width, te.PriceID".format(add, filtrtpp)
         res = self.db.rs(sql)
-        dres = []
+        lres = []
         for i in res:
             ac = namedtuple('ac', keys)
-            dres.append(ac(*i))
-        return dres
+            lres.append(ac(*i))
+        return lres
