@@ -26,37 +26,43 @@ def list_pan(matid, tpp=None):
     idPans = pn.list_panels(matid, tpp)
     listPan = []
     keys = ('name', 'thickness', 'article', 'length', 'width', 'cnt',
-            'band_x1', 'band_x2', 'band_y1', 'band_y2', 'num', 'note')
+            'band_x1', 'band_x2', 'band_y1', 'band_y2', 'cpos', 'note')
     for idpan in idPans:
-        pans = namedtuple('pans', keys)
+        Pans = namedtuple('Pans', keys)
         if pn.form(idpan) == 0:
             telems = bs.telems(idpan)
             matprop = nm.properties(matid)
-            pans.name = telems.name
-            pans.thickness = matprop.thickness
-            pans.article = matprop.article
-            pans.length = pn.planelength(idpan)
-            pans.width = pn.planewidth(idpan)
-            pans.cnt = telems.count
-            pans.band_x1 = pn.band_x1(idpan).thickband
-            pans.band_x2 = pn.band_x2(idpan).thickband
-            pans.band_y1 = pn.band_y1(idpan).thickband
-            pans.band_y2 = pn.band_y2(idpan).thickband
-            pans.num = telems.commonpos
+            name = telems.name
+            thickness = matprop.thickness
+            article = matprop.article
+            length = pn.planelength(idpan)
+            width = pn.planewidth(idpan)
+            cnt = telems.count
+            band_x1 = pn.band_x1(idpan).thickband
+            band_x2 = pn.band_x2(idpan).thickband
+            band_y1 = pn.band_y1(idpan).thickband
+            band_y2 = pn.band_y2(idpan).thickband
+            cpos = telems.commonpos
+            pdir = pn.dir(idpan)
             note_curvepath = 'Фигурная' if pn.curvepath(idpan) else ''
             slotx = list(map('{0.beg}ш{0.width}г{0.depth}'.format,
                              pn.slots_x_par(idpan)))
             sloty = list(map('{0.beg}ш{0.width}г{0.depth}'.format,
                              pn.slots_y_par(idpan)))
+            if (45<pdir<=135) or (225<pdir<=315):
+                slotx, sloty = sloty, slotx
             note_slotx = "Паз{0} по X {1}".format("ы" if len(slotx) > 1 else "",
                                                   "; ".join(slotx)) if slotx else ""
             note_sloty = "Паз{0} по Y {1}".format("ы" if len(sloty) > 1 else "",
                                                   "; ".join(sloty)) if sloty else ""
             notes = [note_curvepath, note_slotx, note_sloty]
-            pans.note = ". ".join(list(filter(None, notes)))
-            pdir = pn.dir(idpan)
+            note = ". ".join(list(filter(None, notes)))
+            pans = Pans(name, thickness, article, length, width, cnt, band_x1,
+                        band_x2, band_y1, band_y2, cpos, note
+                        )
             listPan.append(pans)
-    return listPan
+    newlist = k3Report.utils.groupbykey(listPan, 'cpos', 'cnt')
+    return newlist
 
 
 def rep_pan(name, mat, tpp=None):
@@ -66,7 +72,7 @@ def rep_pan(name, mat, tpp=None):
     for i, imat in enumerate(mat):
         pans = list_pan(imat.id, tpp)
         for l in pans:
-            val = (l.num, l.name, imat.thickness, imat.name, l.length, l.width, l.cnt, \
+            val = (l.cpos, l.name, imat.thickness, imat.name, l.length, l.width, l.cnt, \
                    l.band_x1, l.band_x2, l.band_y1, l.band_y2, l.note
                    )
             row = xl.putval(row, 1, val)
