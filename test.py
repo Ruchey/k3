@@ -1,29 +1,23 @@
 # -*- coding: utf-8 -*-
 
-import k3Report
+from openpyxl.styles import Border, Side, PatternFill, Font, GradientFill, Alignment
+from openpyxl import Workbook
 
-from pprint import pprint
-
-
-num = 1
-fileDB = r'd:\К3\Самара\Самара черновик\{0}\{0}.mdb'.format(num)
-projreppath = r'd:\К3\Самара\Самара черновик\{0}\Reports'.format(num)
-
-db = k3Report.db.DB(fileDB)
-
-pn = k3Report.panel.Panel(db)
-nm = k3Report.nomenclature.Nomenclature(db)
-lg = k3Report.longs.Longs(db)
-bs = k3Report.base.Base(db)
-
-res = pn.slots_y_par(320)
-a = "Паз по X {0}".format("; ".join(list(map('{0.beg}ш{0.width}г{0.depth}'.format, res))))
-#res = nm.properties(8426)
-
-pprint(a)
+wb = Workbook()
+ws = wb.active
+ws.merge_cells('B2:F4')
 
 
+top_left_cell = ws['B2']
+top_left_cell.value = "My Cell"
 
+thin = Side(border_style="thin", color="000000")
+double = Side(border_style="double", color="ff0000")
 
-db.close()
+top_left_cell.border = Border(top=double, left=thin, right=thin, bottom=double)
+top_left_cell.fill = PatternFill("solid", fgColor="DDDDDD")
+top_left_cell.fill = fill = GradientFill(stop=("000000", "FFFFFF"))
+top_left_cell.font  = Font(b=True, color="FF0000")
+top_left_cell.alignment = Alignment(horizontal="center", vertical="center")
 
+wb.save("d:\\styled.xlsx")

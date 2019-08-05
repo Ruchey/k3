@@ -34,8 +34,8 @@ class Nomenclature:
         res = self.db.rs(sql)
         lres = []
         for i in res:
-            ac = namedtuple('ac', keys)
-            lres.append(ac(*i))
+            Ac = namedtuple('Ac', keys)
+            lres.append(Ac(*i))
         return lres
 
     def acclong(self, tpp=None):
@@ -50,8 +50,8 @@ class Nomenclature:
         res = self.db.rs(sql)
         lres = []
         for i in res:
-            ac = namedtuple('ac', keys)
-            lres.append(ac(*i))
+            Ac = namedtuple('Ac', keys)
+            lres.append(Ac(*i))
         return lres
 
     def matbyuid(self, uid, tpp=None):
@@ -72,7 +72,7 @@ class Nomenclature:
         else:
             return res
 
-    def properties(self, id=0):
+    def properties(self, id):
         """Возвращает именованный кортеж свойств номенклатурной единицы
         properties.name
         properties.article
@@ -99,8 +99,8 @@ class Nomenclature:
             res4 = list(zip(keys,self.db.rs(sql4)[0]))
         res = utils.normkeyprop(res1 + res2 + res3 + res4)
         if res:
-            prop = namedtuple('prop', [x[0] for x in res])
-            return prop(**dict(res))
+            Prop = namedtuple('Prop', [x[0] for x in res])
+            return Prop(**dict(res))
         else:
             return None
 
@@ -133,7 +133,7 @@ class Nomenclature:
         "Определяем кол-во площадного материала"
         
         where = "{0} AND te.TopParentPos={1}".format(id, tpp) if tpp else "{}".format(id)
-        sql = "SELECT Sum((XUnit*YUnit*Count)/10^6) AS sqr FROM TElems AS te WHERE te.PriceID={}".format(where)
+        sql = "SELECT Round(Sum((XUnit*YUnit*Count)/10^6), 2) AS sqr FROM TElems AS te WHERE te.PriceID={}".format(where)
         res = self.db.rs(sql)
         if res:
             return res[0][0]
@@ -173,7 +173,8 @@ class Nomenclature:
               "GROUP BY tb.Width, te.PriceID".format(add, filtrtpp)
         res = self.db.rs(sql)
         lres = []
-        for i in res:
-            ac = namedtuple('ac', keys)
-            lres.append(ac(*i))
+        if res:
+            for i in res:
+                Band = namedtuple('Band', keys)
+                lres.append(Band(*i))
         return lres

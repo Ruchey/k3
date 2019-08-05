@@ -19,7 +19,6 @@ class Panel:
         except:
             return None
 
-
     def list_panels(self, matid=None, tpp=None):
         """Получить список панелей по материалу
            matid - id материала из которого сделана панель
@@ -39,7 +38,6 @@ class Panel:
                 id.append(i[0])
         return id
 
-
     def xunit(self, unitpos):
         """Размер панели вдоль X"""
         
@@ -49,7 +47,6 @@ class Panel:
             return utils.float_int(res[0][0])
         else:
             return 0
-
 
     def yunit(self, unitpos):
         """Размер панели вдоль Y"""
@@ -61,7 +58,6 @@ class Panel:
         else:
             return 0
 
-
     def zunit(self, unitpos):
         """Размер панели вдоль Z"""
         
@@ -72,16 +68,16 @@ class Panel:
         else:
             return 0
 
-
     def cnt(self, unitpos):
-        """Количество панелей"""
+        """Количество панелей. Возвращает св-во count из таблицы TElems"""
         
         sql = "SELECT count FROM TElems WHERE unitpos = {}".format(unitpos)
-        return self.db.rs(sql)
-
+        res = self.db.rs(sql)
+        if res:
+            return res[0][0]
 
     def length(self, unitpos):
-        """Длина с кромкой"""
+        """Длина панели с кромкой"""
         
         sql = "SELECT length FROM TPanels WHERE unitpos = {}".format(unitpos)
         res = self.db.rs(sql)
@@ -90,9 +86,8 @@ class Panel:
         else:
             return 0
 
-
     def width(self, unitpos):
-        """Ширина с кромкой"""
+        """Ширина панели с кромкой"""
 
         sql = "SELECT width FROM TPanels WHERE unitpos = {}".format(unitpos)
         res = self.db.rs(sql)
@@ -101,9 +96,8 @@ class Panel:
         else:
             return 0
 
-
     def planelength(self, unitpos):
-        """Длина без кромки"""
+        """Длина панели без кромки"""
 
         sql = "SELECT planelength FROM TPanels WHERE unitpos = {}".format(unitpos)
         res = self.db.rs(sql)
@@ -112,9 +106,8 @@ class Panel:
         else:
             return 0
 
-
     def planewidth(self, unitpos):
-        """Ширина без кромки"""
+        """Ширина панели без кромки"""
         
         sql = "SELECT planewidth FROM TPanels WHERE unitpos = {}".format(unitpos)
         res = self.db.rs(sql)
@@ -122,7 +115,6 @@ class Panel:
             return utils.float_int(res[0][0])
         else:
             return 0
-
 
     def thickness(self, unitpos):
         """Толщина панели"""
@@ -134,7 +126,6 @@ class Panel:
         else:
             return 0
 
-
     def dir(self, unitpos):
         """Направление текстуры в градусах"""
         
@@ -145,7 +136,6 @@ class Panel:
         else:
             return 0
 
-
     def curvepath(self, unitpos):
         """Панель отличается от прямоугольности (скос, например)"""
         
@@ -155,7 +145,6 @@ class Panel:
             return res[0][0]
         else:
             return False
-
 
     def form(self, unitpos):
         """Форма панели
@@ -171,7 +160,6 @@ class Panel:
         else:
             return 0
 
-
     def slots_is(self, unitpos):
         """Наличие пропилов
         True - есть пропилы
@@ -183,8 +171,7 @@ class Panel:
             return bool(res[0][0])
         else:
             return False
-    
-    
+
     def slots_x_pc(self, unitpos):
         """Количество пропилов вдоль длины. Не учитывает напр. текстуры"""
         
@@ -194,7 +181,6 @@ class Panel:
             return res[0][0]
         else:
             return 0
-
 
     def slots_y_pc(self, unitpos):
         """Количество пропилов поперёк длины. Не учитывает напр. текстуры"""
@@ -206,7 +192,6 @@ class Panel:
         else:
             return 0
 
-
     def slots_x_slen(self, unitpos):
         """Суммарная длина пропилов вдоль длины. Не учитывает напр. текстуры"""
         
@@ -217,7 +202,6 @@ class Panel:
         else:
             return 0
 
-
     def slots_y_slen(self, unitpos):
         """Суммарная длина пропилов поперёк длины. Не учитывает напр. текстуры"""
         
@@ -227,7 +211,6 @@ class Panel:
             return res[0][0]
         else:
             return 0
-
 
     def slots_x_par(self, unitpos):
         """Параметры пропилов вдоль длины. Не учитывает напр. текстуры
@@ -240,11 +223,10 @@ class Panel:
         res = self.db.rs(sql)
         lres = []
         for i in res:
-            slot = namedtuple('slot', keys)
+            Slot = namedtuple('Slot', keys)
             i = tuple(map(utils.float_int, i))
-            lres.append(slot(*i))
+            lres.append(Slot(*i))
         return lres
-
 
     def slots_y_par(self, unitpos):
         """Параметры пропилов поперёк длины. Не учитывает напр. текстуры
@@ -257,11 +239,10 @@ class Panel:
         res = self.db.rs(sql)
         lres = []
         for i in res:
-            slot = namedtuple('slot', keys)
+            Slot = namedtuple('Slot', keys)
             i = tuple(map(utils.float_int, i))
-            lres.append(slot(*i))
+            lres.append(Slot(*i))
         return lres
-
 
     def butts_is(self, unitpos):
         """Наличие обработки торцов
@@ -275,7 +256,6 @@ class Panel:
         else:
             return False
 
-
     def frezerovka(self, unitpos):
         """Список фрезеровок данной панели"""
         
@@ -285,7 +265,6 @@ class Panel:
             return tuple(itertools.chain.from_iterable(res))
         else:
             return ()
-
 
     def priceid(self, unitpos):
         """ID элемента в номенклатурном справочнике"""
@@ -297,7 +276,6 @@ class Panel:
         else:
             return 0
 
-
     def name(self, unitpos):
         """Название панели"""
         
@@ -307,7 +285,6 @@ class Panel:
             return res[0][0]
         else:
             return ''
-
 
     def data(self, unitpos):
         """Примечание панели"""
@@ -319,7 +296,6 @@ class Panel:
         else:
             return ''
 
-
     def cmpos(self, unitpos):
         """Пользовательский номер элемента"""
         
@@ -329,7 +305,6 @@ class Panel:
             return res[0][0]
         else:
             return 0
-
 
     def ppos(self, unitpos):
         """Номер родителя элемента"""
@@ -341,7 +316,6 @@ class Panel:
         else:
             return 0
 
-
     def tpos(self, unitpos):
         """Номер верхнего родителя элемента"""
         
@@ -351,7 +325,6 @@ class Panel:
             return res[0][0]
         else:
             return 0
-
 
     def furntype(self, unitpos):
         """Тип мебельного элемента"""
@@ -363,7 +336,6 @@ class Panel:
         else:
             return '000000'
 
-
     def sumcost(self, unitpos):
         """Стоимость элемента"""
 
@@ -374,27 +346,25 @@ class Panel:
         else:
             return 0
 
-
     def svw(self, unitpos):
         """Возвращает именованный кортеж
         s - Площадь кв.м
         v - объём куб.м
         w - вес кг
         """
-        svw = namedtuple('svw', 's v w')
+        SVW = namedtuple('SVW', 's v w')
         id = self.priceid(unitpos)
         sql = "SELECT tnpv.DValue FROM TNProperties AS tnp LEFT JOIN TNPropertyValues AS tnpv "\
               "ON tnp.ID = tnpv.PropertyID WHERE (((tnp.Ident)='density') AND ((tnpv.EntityID)={}))".format(id)
         res = self.db.rs(sql)
         if res:
             density = int(res[0][0])
-            s = self.xunit(unitpos)*self.yunit(unitpos)/1000000
+            s = round(self.xunit(unitpos)*self.yunit(unitpos)/1000000, 2)
             v = s*self.zunit(unitpos)/1000
             w = v*density
-            return svw(round(s,2), round(v,4), round(w,2))
+            return SVW(round(s,2), round(v,4), round(w,2))
         else:
-            return svw((0, 0, 0))
-
+            return SVW((0, 0, 0))
 
     def radius(self, unitpos):
         """Возвращает именованный кортеж
@@ -402,7 +372,7 @@ class Panel:
         axis - ось гиба OX или OY
         """
         ax = {1: 'OX', 2: 'OY'}
-        rad = namedtuple('rad', 'rad axis')
+        Rad = namedtuple('Rad', 'rad axis')
         radius = 0
         bend = 0            # ось гиба: 1 - OX 2 - OY
         form = self.form(unitpos)  # узнаём форму панели
@@ -431,8 +401,7 @@ class Panel:
             radius = res[0][0]
             bend = ax[res[0][1]]
 
-        return rad(round(radius,1), bend)
-
+        return Rad(round(radius,1), bend)
 
     def band_side(self, unitpos, IDLine, IDPoly=1):
         """информация о кромке торца
@@ -443,7 +412,7 @@ class Panel:
         thickband - ширина кромки
         count - кол-во кромки
         """
-        band = namedtuple('band', ['id', 'name', 'width', 'thickpan', 'thickband', 'count'])
+        Band = namedtuple('Band', ['id', 'name', 'width', 'thickpan', 'thickband', 'count'])
         b_priceID = None       # id кромки в номенклатуре
         b_name = None          # название кромки
         b_width = None         # ширина кромки
@@ -456,7 +425,7 @@ class Panel:
         sql = "SELECT tpm.NumValue FROM TParams AS tpm WHERE (tpm.unitpos = {} AND tpm.ParamName='PanPolyType' AND tpm.HoldTable='TPanels')".format(unitpos)
         res = self.db.rs(sql)
         if not res:
-            return band(0, '', 0, 0, 0, 0)
+            return Band(0, '', 0, 0, 0, 0)
         PolyType = int(res[0][0])
         if (PolyType == 2) or (PolyType == 3):
             sql = "SELECT bu.BandUnitPos, tn.ID, tn.Name, Count FROM (SELECT idp.NumValue AS IDPoly, idl.NumValue AS IDLine, idb.NumValue AS BandUnitPos "\
@@ -482,8 +451,7 @@ class Panel:
                 res = self.db.rs(sql)
                 if res:
                     b_thick = utils.float_int(res[0][0])
-        return band(b_priceID, b_name, b_width, b_thickPan, b_thick, b_cnt)
-
+        return Band(b_priceID, b_name, b_width, b_thickPan, b_thick, b_cnt)
 
     def band_b(self, unitpos):
         """информация о кромке торца B"""
@@ -491,13 +459,11 @@ class Panel:
         res = self.band_side(unitpos, 7, 1)
         return res
 
-
     def band_c(self, unitpos):
         """информация о кромке торца C"""
 
         res = self.band_side(unitpos, 3, 1)
         return res
-
 
     def band_d(self, unitpos):
         """информация о кромке торца D"""
@@ -505,13 +471,11 @@ class Panel:
         res = self.band_side(unitpos, 1, 1)
         return res
 
-
     def band_e(self, unitpos):
         """информация о кромке торца E"""
         
         res = self.band_side(unitpos, 5, 1)
         return res
-
 
     def band_x1(self, unitpos):
         "Кромка вдоль длины одной стороны с учётом текстуры"
@@ -524,7 +488,6 @@ class Panel:
         else:
             return self.band_e(unitpos)
 
-
     def band_x2(self, unitpos):
         "Кромка вдоль длины одной стороны с учётом текстуры"
         
@@ -535,7 +498,6 @@ class Panel:
             return self.band_b(unitpos)
         else:
             return self.band_d(unitpos)
-
 
     def band_y1(self, unitpos):
         "Кромка вдоль длины одной стороны с учётом текстуры"
@@ -548,7 +510,6 @@ class Panel:
         else:
             return self.band_b(unitpos)
 
-
     def band_y2(self, unitpos):
         "Кромка вдоль длины одной стороны с учётом текстуры"
         
@@ -560,6 +521,22 @@ class Panel:
         else:
             return self.band_c(unitpos)
 
+    def total_bands_to_panels(self, pans):
+        """Сумарное количество кромок, принадлежащих списку деталей.
+        Вывод: именованный кортеж priceid, length
+        """
+        
+        sql = "SELECT te.PriceID, Round(Sum(tb.Length * te.Count)/1000, 2) AS Length " \
+              "FROM TBands AS tb RIGHT JOIN TElems AS te " \
+              "ON tb.UnitPos = te.UnitPos WHERE te.ParentPos In {} " \
+              "GROUP BY te.PriceID".format(tuple(pans))
+        res = self.db.rs(sql)
+        lres = []
+        if res:
+            for i in res:
+                TBP = namedtuple('TBP', 'priceid length')
+                lres.append(TBP(*i))
+        return lres
 
     def decorates(self, unitpos, map=5):
         """Определяет отделку панели выбранной карты map:
@@ -601,7 +578,6 @@ class Panel:
 
         return decorname
 
-
     def cnt_drill_pans(self, tpp=None, hingoff=False):
         """Получить кол-во просверленных деталей. Сверловка с двух сторон считается, как две детали
            hingoff = True - Считать вместе с присадкой под петли
@@ -617,13 +593,12 @@ class Panel:
         
         sql_un = " UNION ".join([sql_exF, sql_F])
         sql = "SELECT Count(*) FROM ({})".format(sql_un)
-        res = self.db.rs(sql)[0][0]
-        
-        if hingoff==True:
-            return res - self.cnt_pan_hings(tpp=tpp)
-        else:
-            return res
-
+        res = self.db.rs(sql)
+        if res:
+            if hingoff==True:
+                return res[0][0] - self.cnt_pan_hings(tpp=tpp)
+            else:
+                return res[0][0]
 
     def cnt_holes_pan(self, unitpos, hingoff=False):
         """Получить кол-во отверстий конкретной панели
@@ -638,7 +613,6 @@ class Panel:
         else:
             return res[0][0]
 
-
     def cnt_holes_pan_diam(self, unitpos, d):
         """Получить кол-во отверстий определённого диаметра конкретной панели"""
         
@@ -647,7 +621,6 @@ class Panel:
         if not res:
             return 0
         return res[0][0]
-
 
     def cnt_holes_hings(self, unitpos=None, tpp=None):
         """Получить кол-во отверстий под чашку пети у всех панелей, 
@@ -669,7 +642,6 @@ class Panel:
             return 0
         return res[0][0]
 
-
     def cnt_hings_x(self, unitpos):
         """Количество петель вдоль панели"""
         
@@ -680,7 +652,6 @@ class Panel:
             return 0
         return res[0][0]
 
-
     def cnt_hings_y(self, unitpos):
         """Количество петель поперёк панели"""
         
@@ -690,7 +661,6 @@ class Panel:
         if not res:
             return 0
         return res[0][0]
-
 
     def cnt_pan_hings(self, tpp=None):
         """Получить кол-во деталей с присадкой только под петли (без других отв.)

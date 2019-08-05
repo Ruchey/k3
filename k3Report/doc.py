@@ -5,7 +5,7 @@ import openpyxl
 import os
 
 from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font, NamedStyle
-from openpyxl.utils.units import cm_to_EMU, EMU_to_inch
+from openpyxl.utils.units import cm_to_EMU, EMU_to_inch, pixels_to_points
 
 
 class DocOpenpyxl:
@@ -47,8 +47,7 @@ class DocOpenpyxl:
             self.first = False
         else:
             self.ws = self.wb.create_sheet(name[:31])
-            
-            
+
         self.ws.page_setup.orientation = self.sheetorient
         self.ws.page_setup.paperSize = self.papersize
         self.ws.page_margins.left = EMU_to_inch(cm_to_EMU(self.leftmargin))
@@ -56,34 +55,39 @@ class DocOpenpyxl:
         self.ws.page_margins.top = EMU_to_inch(cm_to_EMU(self.topmargin))
         self.ws.page_margins.bottom = EMU_to_inch(cm_to_EMU(self.bottommargin))
         self.ws.print_options.horizontalCentered = self.centerhorizontally
-        
-        
-        #self.Excel.ActiveWindow.DisplayZeros = self.displayzeros
-    
+
     def generatestyles(self):
-        '''Создание базовых стилей'''
-        styles=[{'name': 'Таблица 1', 'text_color': '00000000', 'sc': 'D9D9D9', 'ec': 'D9D9D9', 'bc': '595959', 'bold': True, 'italic': False, 'vertAlign': None, 'horAlign':'right'},
-                {'name': 'Таблица 2', 'text_color': '00000000', 'sc': '8DB4E2', 'ec': '8DB4E2', 'bc': '16365C', 'bold': True, 'italic': False, 'vertAlign': None, 'horAlign':'right'},
-                {'name': 'Таблица 3', 'text_color': '00000000', 'sc': 'B8CCE4', 'ec': 'B8CCE4', 'bc': '366092', 'bold': True, 'italic': False, 'vertAlign': None, 'horAlign':'right'},
-                {'name': 'Таблица 4', 'text_color': '00000000', 'sc': 'E6B8B7', 'ec': 'E6B8B7', 'bc': '963634', 'bold': True, 'italic': False, 'vertAlign': None, 'horAlign':'right'},
-                {'name': 'Таблица 5', 'text_color': '00000000', 'sc': 'D8E4BC', 'ec': 'D8E4BC', 'bc': '76933C', 'bold': True, 'italic': False, 'vertAlign': None, 'horAlign':'right'},
-                {'name': 'Таблица 6', 'text_color': '00000000', 'sc': 'CCC0DA', 'ec': 'CCC0DA', 'bc': '60497A', 'bold': True, 'italic': False, 'vertAlign': None, 'horAlign':'right'},
-                {'name': 'Таблица 7', 'text_color': '00000000', 'sc': 'B7DEE8', 'ec': 'B7DEE8', 'bc': '31869B', 'bold': True, 'italic': False, 'vertAlign': None, 'horAlign':'right'},
+        """Создание базовых стилей"""
+        styles=[{'name': 'Шапка 1', 'sc': 'D9D9D9', 'ec': 'D9D9D9', 'bc': '595959', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
+                {'name': 'Шапка 2', 'sc': '8DB4E2', 'ec': '8DB4E2', 'bc': '16365C', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
+                {'name': 'Шапка 3', 'sc': 'B8CCE4', 'ec': 'B8CCE4', 'bc': '366092', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
+                {'name': 'Шапка 4', 'sc': 'E6B8B7', 'ec': 'E6B8B7', 'bc': '963634', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
+                {'name': 'Шапка 5', 'sc': 'D8E4BC', 'ec': 'D8E4BC', 'bc': '76933C', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
+                {'name': 'Шапка 6', 'sc': 'CCC0DA', 'ec': 'CCC0DA', 'bc': '60497A', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
+                {'name': 'Шапка 7', 'sc': 'B7DEE8', 'ec': 'B7DEE8', 'bc': '31869B', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
+                {'name': 'Таблица 1', 'bl': 'thin', 'br': 'thin', 'bt': 'thin', 'bb': 'thin'}
                 ]
         
         for s in styles:
-            font = Font(name=self.font, size=self.fontsize, bold=s['bold'], italic=s['italic'], vertAlign=s['vertAlign'], underline='none', strike=False, color=s['text_color'])
-            fill = PatternFill(fill_type='solid', start_color=s['sc'], end_color=s['ec'])
-            border = Border(left=Side(border_style=None, color=s['bc']),
-                                 right=Side(border_style=None, color=s['bc']),
-                                 top=Side(border_style=None, color=s['bc']),
-                                 bottom=Side(border_style='thin', color=s['bc']),
-                                 diagonal=Side(border_style=None, color=s['bc']),
-                                 diagonal_direction=0, outline=Side(border_style=None, color=s['bc']),
-                                 vertical=Side(border_style=None, color=s['bc']),
-                                 horizontal=Side(border_style=None, color=s['bc'])
-                                )
-            alignment=Alignment(horizontal=s['horAlign'], vertical='bottom', text_rotation=0, wrap_text=False, shrink_to_fit=False, indent=0)
+            font = Font(name=self.font, size=self.fontsize, bold=s.get('bold', False), \
+                        italic=s.get('italic', False), \
+                        vertAlign=s.get('vertAlign'), underline='none', \
+                        strike=False, color=s.get('txtclr', '000000') \
+                        )
+            fill = PatternFill(fill_type=s.get('ft'), start_color=s.get('sc'), end_color=s.get('ec'))
+
+            border = Border(left=Side(border_style=s.get('bl'), color=s.get('bc', '000000')),
+                            right=Side(border_style=s.get('br'), color=s.get('bc', '000000')),
+                            top=Side(border_style=s.get('bt'), color=s.get('bc', '000000')),
+                            bottom=Side(border_style=s.get('bb'), color=s.get('bc', '000000')),
+                            diagonal=Side(border_style=None, color=s.get('bc', '000000')),
+                            diagonal_direction=0, outline=Side(border_style=None, color=s.get('bc', '000000')),
+                            vertical=Side(border_style=s.get('bv'), color=s.get('bc', '000000')),
+                            horizontal=Side(border_style=s.get('bh'), color=s.get('bc', '000000'))
+                            )
+            alignment=Alignment(horizontal=s.get('horAlign', 'left'), \
+                                vertical='bottom', text_rotation=0, \
+                                wrap_text=False, shrink_to_fit=False, indent=0)
                     
             tab = NamedStyle(name=s['name'])
             tab.font = font
@@ -93,11 +97,11 @@ class DocOpenpyxl:
             self.wb.add_named_style(tab)
         
     def save(self, pathname='test.xlsx'):
-        '''Сохраняем документ'''
+        """Сохраняем документ"""
         self.wb.save(pathname)
         
     def num2col(self, colnumber):
-        '''Преобразует числовой номер столбца в буквенный'''
+        """Преобразует числовой номер столбца в буквенный"""
         num2col = ""
         while colnumber > 0:
             i = int(colnumber % 26)
@@ -110,15 +114,18 @@ class DocOpenpyxl:
         return num2col
 
     def columnsize(self, clm, sz):
-        '''Устанавливает размеры столбцов'''
-        if type(sz) != list:
-            self.wb.ActiveSheet.Columns(clm).ColumnWidth = sz
+        """Устанавливает размеры столбцов"""
+
+        if type(sz) not in(list, tuple):
+            col = self.num2col(sz)
+            self.ws.column_dimensions[col].width = sz + 0.7109375
         else:
-            for (val, i) in zip(sz, range(len(sz))):
-                self.wb.ActiveSheet.Columns(clm+i).ColumnWidth = val
+            for i, cs in enumerate(sz):
+                col = self.num2col(clm+i)
+                self.ws.column_dimensions[col].width = cs + 0.7109375
 
     def rowsize(self, rw, sz):
-        '''Устанавливает размеры строк'''
+        """Устанавливает размеры строк"""
         if type(sz) != list:
             self.wb.ActiveSheet.Rows(rw).RowHeight = sz
         else:
@@ -126,64 +133,25 @@ class DocOpenpyxl:
                 self.wb.ActiveSheet.Rows(rw+i).RowHeight = val
 
     def columnfit(self, clm, ln=1):
-        '''Установка авторазмера колонок'''
+        """Установка авторазмера колонок"""
+        #не адаптированно
         cells = self.num2col(clm) + ":" + self.num2col(clm+ln-1)
         self.wb.ActiveSheet.Columns(cells).EntireColumn.AutoFit
 
     def rowfit(self, rw, ln=1):
-        '''Установка авторазмера строк'''
+        """Установка авторазмера строк"""
+        #не адаптированно
         cells = str(rw) + ":" + str(rw+ln-1)
         self.wb.ActiveSheet.Rows(cells).EntireRow.AutoFit
 
-    def header(self, rw, clm, val, bold=True, pat=1, tc=9, ink=2, tas=0):
-        '''Создаёт шапку таблицы
-            bold - жирный шрифт
-            tc   - заливка
-            ink - чернила
-            tas - номер яркости 0-без затемнения 1-тёмное 5-яркое
-        '''
-        tint = {0:0, 1:-0.499984740745262, 2:-0.249977111117893, 3:0.399975585192419, \
-                4:0.599993896298105, 5:0.799981688894314}
-        tc = -4142 if tc==0 else tc
-        pat = -4142 if pat==0 else pat
-        self.putval(rw, clm, val)
-        ln = (1 if type(val) != list else len(val))
-        cells = self.num2col(clm)+str(rw)+":"+self.num2col(clm+ln-1)+str(rw)
-        range = self.wb.ActiveSheet.Range(cells)
-        range.Font.Bold = True
-        range.Font.ThemeColor = ink
-        range.Font.TintAndShade = 0
-        range.HorizontalAlignment = self.xlconst['xlLeft']
-        range.Interior.Pattern = pat
-        range.Interior.PatternColorIndex = -4105
-        range.Interior.ThemeColor = tc
-        range.Interior.TintAndShade = tint[tas]
-        range.Interior.PatternTintAndShade = 0
-
-    def header2(self, rw, clm, val, ln=1, halign='r', tc=4, ink=2, tas=0):
-        tint = {0:0, 1:-0.499984740745262, 2:-0.249977111117893, 3:0.399975585192419, \
-                4:0.599993896298105, 5:0.799981688894314}
-        cells = self.num2col(clm)+str(rw)+":"+self.num2col(clm+ln-1)+str(rw)
-        range = self.wb.ActiveSheet.Range(cells)
-        range.Merge()
-        range.Value = val
-        self.txtformat(rw, clm, halign)
-        range.Font.Bold = True
-        range.Font.ThemeColor = ink
-        range.Font.TintAndShade = 0
-        range.Interior.Pattern = 1
-        range.Interior.PatternColorIndex = -4105
-        range.Interior.ThemeColor = tc
-        range.Interior.TintAndShade = tint[tas]
-        range.Interior.PatternTintAndShade = 0
-
     def paintcells(self, rw, clm, ln=1, tc=1, ink=2, tas=0):
-        '''
+        """
         Раскрашивание ячеек
         tc   - ThemeColor заливка
         ink - чернила
         tas - TintAndShade номер яркости 0-без затемнения 1-тёмное 5-яркое
-        '''
+        """
+        #не адаптированно
         tint1 = {0:0, 1:-0.0499893185216834, 2: -0.149998474074526, 3:-0.249977111117893, 4:-0.349986266670736, 5:-0.499984740745262}
         tint2 = {0:0, 1:0.499984740745262, 2:0.349986266670736, 3:0.249977111117893, 4:0.149998474074526, 5:0.0499893185216834}
         tint3 = {0:0, 1:-0.0999786370433668, 2:-0.249977111117893, 3:-0.499984740745262, 4:-0.749992370372631, 5:-0.899990844447157}
@@ -213,7 +181,8 @@ class DocOpenpyxl:
         range.Interior.PatternTintAndShade = 0
 
     def paintcellsnone(self, rw, clm, ln=1):
-        '''Цвет заливки ячейки НЕТ'''
+        """Цвет заливки ячейки НЕТ"""
+        #не адаптированно
         cells = self.num2col(clm)+str(rw)+":"+self.num2col(clm+ln-1)+str(rw)
         range = self.wb.ActiveSheet.Range(cells)
         range.Interior.Pattern = -4142
@@ -222,16 +191,17 @@ class DocOpenpyxl:
         range.Font.ColorIndex = -4105
         range.Font.TintAndShade = 0
 
-    def txtformat(self, rw, clm, halign='l', valign='b', wrap='f', nf=[''], ort=[], fsz=[], bold='f'):
-        '''Выравнивание текста в ячейках по горизонтали и вертикали; перенос текста; формат числа
+    def txtformat(self, rw, clm, halign='l', valign='b', wrap='f', nf=[''], \
+                  ort=[None], fsz=[None], bold='f', italic='f'):
+        """Выравнивание текста в ячейках по горизонтали и вертикали; перенос текста; формат числа
            halign: l-xlLeft, r-xlRight, c-xlCenter
            valign: t-xlTop, c-xlCenter, b-xlBottom
            wrap: f-False, t-True
            nf-NumberFormat: "General" по умолчанию "Общий". Передаётся списком
            ort-orientation: Ориентация текста (поворот в градусах)
            bold - жирный текст f-False, t-True
-           '''
-        al = {'l':'xlLeft', 'r':'xlRight', 'c':'xlCenter', 't':'xlTop', 'b':'xlBottom'}
+           """
+        al = {'l':'left', 'r':'right', 'c':'center', 't':'top', 'b':'bottom'}
         ft = {'f':False, 't':True}
         halign = halign.lower()
         valign = valign.lower()
@@ -240,25 +210,25 @@ class DocOpenpyxl:
         rwlen = max(len(halign), len(valign), len(wrap), len(nf), len(ort), len(fsz), len(bold))
         for i in range(rwlen):
             cells = self.num2col(clm+i)+str(rw)
-            h = self.xlconst[al[halign[min(i,len(halign)-1)]]]
-            v = self.xlconst[al[valign[min(i,len(valign)-1)]]]
+            h = al[halign[min(i,len(halign)-1)]]
+            v = al[valign[min(i,len(valign)-1)]]
             w = ft[wrap[min(i,len(wrap)-1)]]
             n = nf[min(i,len(nf)-1)]
             b = ft[bold[min(i,len(bold)-1)]]
-            self.wb.ActiveSheet.Range(cells).HorizontalAlignment = h
-            self.wb.ActiveSheet.Range(cells).VerticalAlignment = v
-            self.wb.ActiveSheet.Range(cells).WrapText = w
-            self.wb.ActiveSheet.Range(cells).NumberFormat = n
-            self.wb.ActiveSheet.Range(cells).Font.Bold = b
-            if ort:
-                o = ort[min(i,len(ort)-1)]
-                self.wb.ActiveSheet.Range(cells).Orientation = o
-            if fsz:
-                fz = fsz[min(i,len(fsz)-1)]
-                self.wb.ActiveSheet.Range(cells).Font.Size = fz
+            it = ft[italic[min(i,len(italic)-1)]]
+            o = ort[min(i,len(ort)-1)]
+            fz = fsz[min(i,len(fsz)-1)]
+
+            self.ws[cells].alignment = Alignment(horizontal=h, vertical=v, \
+                                                 text_rotation=o, \
+                                                 wrap_text=w)
+            self.ws[cells].font = Font(size=fz, bold=b, italic=it)
+            self.ws[cells].number_format = n
+
+
 
     def gridset(self, wt='xlThin', ls='xlContinuous', tc=2):
-        '''Настройка сетки'''
+        """Настройка сетки"""
         self.themecolor = tc
         # Weight - толщины линий
         weight = {'xlThin':2, 'xlHairline':1, 'xlThick':4, 'xlMedium':-4138}
@@ -268,7 +238,7 @@ class DocOpenpyxl:
         self.linestyle = linestyle[ls]
 
     def grid(self, rw=0, clm=0, ln=0, hg=0, sd='lrud'):
-        '''Отрисовка сетки'''
+        """Отрисовка сетки"""
         cells = self.num2col(clm)+str(rw)+":"+self.num2col(clm+abs(ln)-1)+str(rw+abs(hg)-1)
         sd = sd.lower()
         side = {'l':7, 'u':8, 'd':9, 'r':10, 'v':11, 'h':12}
@@ -280,11 +250,11 @@ class DocOpenpyxl:
             gr.TintAndShade = 0
 
     def movesheet(self, s1, s2):
-        '''Перемещает лист s1 перед s2'''
+        """Перемещает лист s1 перед s2"""
         self.wb.Sheets(s1).Move(Before=self.wb.Sheets(s2))
 
     def picinsert(self, rw, clm, ln=1, hg=1, file='', hor='c', ver='c'):
-        '''Вставка картинки'''
+        """Вставка картинки"""
         if not os.path.exists(file):
             return None
         cells = self.num2col(clm)+str(rw)+":"+self.num2col(clm+abs(ln)-1)+str(rw+abs(hg)-1)
@@ -330,12 +300,12 @@ class DocOpenpyxl:
         return row+1
 
     def printarea(self, rw, clm, ln, hg):
-        '''Задаёт область печати'''
+        """Задаёт область печати"""
         cells = self.num2col(clm)+str(rw)+":"+self.num2col(clm+abs(ln)-1)+str(rw+abs(hg)-1)
         self.wb.ActiveSheet.PageSetup.PrintArea = cells
 
     def table_style(self, rw, clm,ln, hg, tabname, style='TableStyleLight2', st=True):
-        '''Задать таблицу стилей'''
+        """Задать таблицу стилей"""
         cells = self.num2col(clm)+str(rw)+":"+self.num2col(clm+abs(ln)-1)+str(rw+abs(hg)-1)
         range = self.wb.ActiveSheet.Range(cells)
         self.wb.ActiveSheet.ListObjects.Add(1,range,0,1).Name = tabname
@@ -344,7 +314,7 @@ class DocOpenpyxl:
         range.AutoFilter()
     
     def format_cond(self, rang, tp, op, f1, f2):
-        '''Условное форматирование
+        """Условное форматирование
            rang - диапозон ("A:C")
            tp - Type Определяет, основан ли условный формат на значении ячейки или выражении
            op - Operator Условный оператор формата. Может быть одна из следующих констант XlFormatConditionOperator: 
@@ -353,7 +323,13 @@ class DocOpenpyxl:
            f1 - Formula1 Значение или выражение связанное с условным форматированием. Может быть постоянное значение, строковое значение, ссылка на ячейку или формула.
            f2 - Formula2 Значение или выражение связанное со второй частью условного форматирования, когда Оператор - xlBetween или xlNotBetween (иначе, этот параметр проигнорирован).
                 Может быть постоянное значение, строковое значение, ссылка на ячейку или формула.
-        '''
+        """
         self.wb.ActiveSheet.Range(rang).FormatConditions.Add(tp, op, f1, f2)
 
-
+    def styletorange(self, rang, style):
+        """Применение стиля к диапазону ячеек"""
+        
+        cells = self.ws[rang]
+        for rng in cells:
+            for cell in rng:
+                cell.style = style
