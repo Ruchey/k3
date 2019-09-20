@@ -529,7 +529,7 @@ class Panel:
         sql = "SELECT te.PriceID, Round(Sum(tb.Length * te.Count)/1000, 2) AS Length " \
               "FROM TBands AS tb RIGHT JOIN TElems AS te " \
               "ON tb.UnitPos = te.UnitPos WHERE te.ParentPos In {} " \
-              "GROUP BY te.PriceID".format(tuple(pans))
+              "GROUP BY te.PriceID HAVING te.FurneType=050000".format(tuple(pans))
         res = self.db.rs(sql)
         lres = []
         if res:

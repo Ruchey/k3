@@ -12,15 +12,15 @@ __author__ = 'Виноградов А.Г. г.Белгород'
 
 
 #import k3
-from MReports import *
+from k3Report import *
 
 class Specific:
     '''Получение спецификации'''
     def __init__(self, db):
-        self.nm = Nomenclature(db)
-        self.pf = Profile(db)
-        self.bs = Base(db)
-        self.ln = Longs(db)
+        self.nm = nomenclature.Nomenclature(db)
+        self.pf = profile.Profile(db)
+        self.bs = base.Base(db)
+        self.ln = longs.Longs(db)
     
     def t_sheets(self, tpp=None):
         'Таблица листовыйх материалов'
@@ -28,20 +28,18 @@ class Specific:
         sh = []
         if matid:
             for i in matid:
-                dic = {}
                 prop = self.nm.properties(i)
-                dic['ID'] = i
-                dic['Name'] = prop.get('Name')
-                dic['Price'] = prop.get('Price')
-                dic['UnitsName'] = prop.get('UnitsName')
-                dic['PriceCoeff'] = (1 if not prop.get('PriceCoeff') else prop.get('PriceCoeff'))
-                dic['WasteCoeff'] = (1 if not prop.get('WasteCoeff') else prop.get('WasteCoeff'))
-                dic['Thickness'] = prop.get('Thickness')
-                dic['density'] = (780 if not prop.get('density') else prop.get('density'))
-                dic['Count'] = round(self.nm.sqm(i), 1)
-                dic['MatTypeID'] = prop.get('MatTypeID')
-                sh.append(dic)
-            sh.sort(key=lambda x: [int(x['MatTypeID']),int(x['Thickness'])], reverse=True)
+                sh.append(prop.id)
+                sh.append(prop.name)
+                sh.append(prop.price)
+                sh.append(prop.unitsname)
+                sh.append(prop.pricecoeff)
+                sh.append(prop.wastecoeff)
+                sh.append(prop.thickness)
+                sh.append(prop.density)
+                sh.append(round(self.nm.sqm(i), 1))
+                sh.append(prop.mattypeid)
+            #sh.sort(key=lambda x: [int(xmattypeid),int(xthickness)], reverse=True)
         return sh
     
     def t_components(self, tpp=None):
@@ -162,8 +160,8 @@ if __name__ == '__main__':
     #file = (r'd:\K3\2017\57\57.mdb')
     #file = (r'd:\PKMProjects73\42\42.mdb')
     
-    db = DB()
-    tmp = db.connect(file)    # Подключаемся к базе выгрузки
+    db = db.DB()
+    tmp = db.open(file)    # Подключаемся к базе выгрузки
     if tmp == 'NoFile':
         print('Такой базы данных нет')
         raise SystemExit(1)
@@ -171,5 +169,5 @@ if __name__ == '__main__':
         start()
     except:
         print('Произошла ошибка во время создания отчёта')
-    db.disconnect()
+    db.close()
     

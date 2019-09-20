@@ -58,14 +58,15 @@ class DocOpenpyxl:
 
     def generatestyles(self):
         """Создание базовых стилей"""
-        styles=[{'name': 'Шапка 1', 'sc': 'D9D9D9', 'ec': 'D9D9D9', 'bc': '595959', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
-                {'name': 'Шапка 2', 'sc': '8DB4E2', 'ec': '8DB4E2', 'bc': '16365C', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
-                {'name': 'Шапка 3', 'sc': 'B8CCE4', 'ec': 'B8CCE4', 'bc': '366092', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
-                {'name': 'Шапка 4', 'sc': 'E6B8B7', 'ec': 'E6B8B7', 'bc': '963634', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
-                {'name': 'Шапка 5', 'sc': 'D8E4BC', 'ec': 'D8E4BC', 'bc': '76933C', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
-                {'name': 'Шапка 6', 'sc': 'CCC0DA', 'ec': 'CCC0DA', 'bc': '60497A', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
-                {'name': 'Шапка 7', 'sc': 'B7DEE8', 'ec': 'B7DEE8', 'bc': '31869B', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
-                {'name': 'Таблица 1', 'bl': 'thin', 'br': 'thin', 'bt': 'thin', 'bb': 'thin'}
+        styles=[{'name': 'Заголовок 1', 'sc': 'D9D9D9', 'ec': 'D9D9D9', 'bc': '595959', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
+                {'name': 'Заголовок 2', 'sc': '8DB4E2', 'ec': '8DB4E2', 'bc': '16365C', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
+                {'name': 'Заголовок 3', 'sc': 'B8CCE4', 'ec': 'B8CCE4', 'bc': '366092', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
+                {'name': 'Заголовок 4', 'sc': 'E6B8B7', 'ec': 'E6B8B7', 'bc': '963634', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
+                {'name': 'Заголовок 5', 'sc': 'D8E4BC', 'ec': 'D8E4BC', 'bc': '76933C', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
+                {'name': 'Заголовок 6', 'sc': 'CCC0DA', 'ec': 'CCC0DA', 'bc': '60497A', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
+                {'name': 'Заголовок 7', 'sc': 'B7DEE8', 'ec': 'B7DEE8', 'bc': '31869B', 'bold': True, 'horAlign':'right', 'bb': 'thin', 'ft': 'solid'},
+                {'name': 'Таблица 1', 'bl': 'thin', 'br': 'thin', 'bt': 'thin', 'bb': 'thin', 'wr': True},
+                {'name': 'Шапка 1', 'bl': 'thin', 'br': 'thin', 'bt': 'thin', 'bb': 'thin', 'bold': True}
                 ]
         
         for s in styles:
@@ -87,7 +88,7 @@ class DocOpenpyxl:
                             )
             alignment=Alignment(horizontal=s.get('horAlign', 'left'), \
                                 vertical='bottom', text_rotation=0, \
-                                wrap_text=False, shrink_to_fit=False, indent=0)
+                                wrap_text=s.get('wr', False), shrink_to_fit=False, indent=0)
                     
             tab = NamedStyle(name=s['name'])
             tab.font = font
@@ -191,8 +192,8 @@ class DocOpenpyxl:
         range.Font.ColorIndex = -4105
         range.Font.TintAndShade = 0
 
-    def txtformat(self, rw, clm, halign='l', valign='b', wrap='f', nf=[''], \
-                  ort=[None], fsz=[None], bold='f', italic='f'):
+    def txtformat(self, rw, clm, halign=None, valign=None, wrap='f', nf=[''], \
+                  ort=[None], fsz=[None], bold=None, italic='f'):
         """Выравнивание текста в ячейках по горизонтали и вертикали; перенос текста; формат числа
            halign: l-xlLeft, r-xlRight, c-xlCenter
            valign: t-xlTop, c-xlCenter, b-xlBottom
@@ -203,18 +204,22 @@ class DocOpenpyxl:
            """
         al = {'l':'left', 'r':'right', 'c':'center', 't':'top', 'b':'bottom'}
         ft = {'f':False, 't':True}
-        halign = halign.lower()
-        valign = valign.lower()
+        if halign:
+            halign = halign.lower()
+        if valign:
+            valign = valign.lower()
         wrap = wrap.lower()
-        bold = bold.lower()
-        rwlen = max(len(halign), len(valign), len(wrap), len(nf), len(ort), len(fsz), len(bold))
+        if bold:
+            bold = bold.lower()
+        lst = [halign, valign, wrap, nf, ort, fsz, bold]
+        rwlen = len(max((i for i in lst if i is not None), key=len))
         for i in range(rwlen):
             cells = self.num2col(clm+i)+str(rw)
-            h = al[halign[min(i,len(halign)-1)]]
-            v = al[valign[min(i,len(valign)-1)]]
+            h = al[halign[min(i,len(halign)-1)]] if halign else None
+            v = al[valign[min(i,len(valign)-1)]] if valign else None
             w = ft[wrap[min(i,len(wrap)-1)]]
             n = nf[min(i,len(nf)-1)]
-            b = ft[bold[min(i,len(bold)-1)]]
+            b = ft[bold[min(i,len(bold)-1)]] if bold else None
             it = ft[italic[min(i,len(italic)-1)]]
             o = ort[min(i,len(ort)-1)]
             fz = fsz[min(i,len(fsz)-1)]

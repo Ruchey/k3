@@ -8,9 +8,8 @@ from collections import namedtuple
 
 class Report:
     
-    def __init__(self, db, customer='', phone=''):
+    def __init__(self, db, phone=''):
         
-        self.customer = customer
         self.phone = phone
         self.nm = k3Report.nomenclature.Nomenclature(db)
         self.bs = k3Report.base.Base(db)
@@ -35,7 +34,7 @@ class Report:
         """Подготовка бланка"""
     
         to = self.bs.torderinfo()
-        main_customer = self.customer
+        main_customer = to.executor
         main_phone = self.phone
         order_number = to.ordernumber     # номер заказа
         order_customer = to.customer      # заказчик
@@ -140,18 +139,34 @@ class Report:
         rang = 'B{0}:F{1}'.format(rowstart, row-1)
         self.xl.styletorange(rang, 'Таблица 1')
         row += 1
+        row1 = row
         # Формируем шапку
         val = ('№дет', 'Название', 'толщ', 'Артикул', 'Длина', 'Ширина', \
                'шт', 'Кромка', '', '', '', 'Примечание')
         row = self.xl.putval(row, 1, val)
         val = ('Длина', '', 'Ширина')
         row = self.xl.putval(row, 8, val)
+        row2 = row
         val = (1, 3, 2, 4)
         row = self.xl.putval(row, 8, val)
+        self.xl.ws.merge_cells('A{0}:A{1}'.format(row1, row2))
+        self.xl.ws.merge_cells('B{0}:B{1}'.format(row1, row2))
+        self.xl.ws.merge_cells('C{0}:C{1}'.format(row1, row2))
+        self.xl.ws.merge_cells('D{0}:D{1}'.format(row1, row2))
+        self.xl.ws.merge_cells('E{0}:E{1}'.format(row1, row2))
+        self.xl.ws.merge_cells('F{0}:F{1}'.format(row1, row2))
+        self.xl.ws.merge_cells('G{0}:G{1}'.format(row1, row2))
+        self.xl.ws.merge_cells('H{0}:K{0}'.format(row1))
+        self.xl.ws.merge_cells('H{0}:I{0}'.format(row1+1))
+        self.xl.ws.merge_cells('J{0}:K{0}'.format(row1+1))
+        self.xl.ws.merge_cells('L{0}:L{1}'.format(row1, row2))
+        self.xl.styletorange('A{0}:L{1}'.format(row1, row), 'Шапка 1')
+        self.xl.txtformat(row1, 1, halign='c', valign='cccccccccccc')
+        self.xl.txtformat(row1, 3, ort=[90,])
         for imat in mat:
             pans = self.list_pan(imat.id, tpp)
             rang = 'A{0}:L{0}'.format(row)
-            self.xl.styletorange(rang, 'Шапка 1')
+            self.xl.styletorange(rang, 'Заголовок 1')
             self.xl.ws.merge_cells(rang)
             row = self.xl.putval(row, 1, imat.name)
             rowstart = row
@@ -208,24 +223,25 @@ class Report:
             listmat.sort(key=lambda x: [x.mattypeid,x.thickness], reverse=True)
             self.rep_pan('Прочее', listmat, tpp)
 
-def start(fileDB, projreppath):
+def start(fileDB, projreppath, project, ph):
 
     # Подключаемся к базе выгрузки
-    db = k3Report.db.DB(fileDB)
-    if db == 'NoFile':
-        raise Exception('Ошибка подключения к базе данных')
+    db = k3Report.db.DB()
+    db.open(fileDB)
 
-    rep = Report(db, 'Сергей Куулар', '8-999-8791288')
+    rep = Report(db, ph)
     rep.makereport()
     db.close()
-    file = os.path.join(projreppath, 'Деталировка.xlsx')
+    file = os.path.join(projreppath, '{}.xlsx'.format(project))
     rep.xl.save(file)
     os.startfile(file)
+    return True
 
 
 if __name__=='__main__':
 
-    fileDB = r'd:\К3\Самара\Самара черновик\1\1.mdb'
-    projreppath = r'd:\К3\Самара\Самара черновик\1\Reports'
-    fuga = 0.5
-    start(fileDB, projreppath)
+    fileDB = r'D:\PKMProjects74\13\13.mdb'
+    projreppath = r'D:\PKMProjects74\13\Reports'
+    ph = '8-999-8791288'
+    start(fileDB, projreppath, ph)
+
