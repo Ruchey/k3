@@ -1,23 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from openpyxl.styles import Border, Side, PatternFill, Font, GradientFill, Alignment
-from openpyxl import Workbook
+import time
+from instapy_cli import client
 
-wb = Workbook()
-ws = wb.active
-ws.merge_cells('B2:F4')
+username = 'shkafkupebel'
+password = 'A621e238'
+image = r'd:\dj\skb\media\photolog\JPG\73.jpg'
 
+image_files = [r'd:\dj\skb\media\photolog\JPG\72.jpg', r'd:\dj\skb\media\photolog\JPG\71.jpg', r'd:\dj\skb\media\photolog\JPG\70.jpg']
 
-top_left_cell = ws['B2']
-top_left_cell.value = "My Cell"
-
-thin = Side(border_style="thin", color="000000")
-double = Side(border_style="double", color="ff0000")
-
-top_left_cell.border = Border(top=double, left=thin, right=thin, bottom=double)
-top_left_cell.fill = PatternFill("solid", fgColor="DDDDDD")
-top_left_cell.fill = fill = GradientFill(stop=("000000", "FFFFFF"))
-top_left_cell.font  = Font(b=True, color="FF0000")
-top_left_cell.alignment = Alignment(horizontal="center", vertical="center")
-
-wb.save("d:\\styled.xlsx")
+with client(username, password, bypass_suspicious_attempt=True) as cli:
+    cli.upload(image, story=True)

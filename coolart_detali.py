@@ -8,9 +8,10 @@ from collections import namedtuple
 
 class Report:
     
-    def __init__(self, db, phone=''):
+    def __init__(self, db, phone='', onelist=1):
         
         self.phone = phone
+        self.onelist = onelist
         self.nm = k3Report.nomenclature.Nomenclature(db)
         self.bs = k3Report.base.Base(db)
         self.pn = k3Report.panel.Panel(db)
@@ -179,7 +180,6 @@ class Report:
             rang = 'A{0}:L{1}'.format(rowstart, row-1)
             self.xl.styletorange(rang, 'Таблица 1')
 
-    
     def makereport(self, tpp=None):
         # 'Формируем данные'
         matid = self.nm.matbyuid(2, tpp)
@@ -190,6 +190,7 @@ class Report:
         listMDF = []
         listDVP = []
         listGLS = []
+        allmat = []
         for i in matid:
             prop = self.nm.properties(i)
             if prop.mattypeid == 128:
@@ -202,7 +203,17 @@ class Report:
                 listGLS.append(prop)
             else:
                 listmat.append(prop)
-    
+        
+        if self.onelist:
+            allmat.extend(listDSP)
+            allmat.extend(listDVP)
+            allmat.extend(listMDF)
+            allmat.extend(listGLS)
+            allmat.extend(listmat)
+            allmat.sort(key=lambda x: [x.mattypeid,x.thickness], reverse=True)
+            self.rep_pan('Деталировка', allmat, tpp)
+            return
+        
         if listDSP:
             listDSP.sort(key=lambda x: x.thickness, reverse=True)
             self.rep_pan('ДСП', listDSP, tpp)
@@ -223,13 +234,13 @@ class Report:
             listmat.sort(key=lambda x: [x.mattypeid,x.thickness], reverse=True)
             self.rep_pan('Прочее', listmat, tpp)
 
-def start(fileDB, projreppath, project, ph):
+def start(fileDB, projreppath, project, ph, onelist):
 
     # Подключаемся к базе выгрузки
     db = k3Report.db.DB()
     db.open(fileDB)
 
-    rep = Report(db, ph)
+    rep = Report(db, ph, onelist)
     rep.makereport()
     db.close()
     file = os.path.join(projreppath, '{}.xlsx'.format(project))
@@ -240,8 +251,10 @@ def start(fileDB, projreppath, project, ph):
 
 if __name__=='__main__':
 
-    fileDB = r'D:\PKMProjects74\13\13.mdb'
-    projreppath = r'D:\PKMProjects74\13\Reports'
+    fileDB = r'd:\К3\Самара\Самара черновик\249\249.mdb'
+    projreppath = r'd:\К3\Самара\Самара черновик\249\Reports'
     ph = '8-999-8791288'
-    start(fileDB, projreppath, ph)
+    onelist = 1
+    project = "Деталировка заготовок"
+    start(fileDB, projreppath, project, ph, onelist)
 
