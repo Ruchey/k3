@@ -1,5 +1,6 @@
 # -*- coding: cp1251 -*-
 __author__ = 'Виноградов А.Г. г.Белгород'
+
 # Модуль создающий таблицы данных
 # t_sheets     Таблица листовыйх материалов
 # t_components Таблица комлпектующих
@@ -11,20 +12,22 @@ __author__ = 'Виноградов А.Г. г.Белгород'
 # 
 
 
-#import k3
-from k3Report import *
+# import k3
+from k3r import *
+
 
 class Specific:
-    '''Получение спецификации'''
+    """Получение спецификации"""
+
     def __init__(self, db):
         self.nm = nomenclature.Nomenclature(db)
-        self.pf = profile.Profile(db)
+        self.pf = prof.Profile(db)
         self.bs = base.Base(db)
-        self.ln = longs.Longs(db)
-    
+        self.ln = long.Long(db)
+
     def t_sheets(self, tpp=None):
         'Таблица листовыйх материалов'
-        matid = self.nm.matbyuid(2, tpp)
+        matid = self.nm.mat_by_uid(2, tpp)
         sh = []
         if matid:
             for i in matid:
@@ -39,18 +42,18 @@ class Specific:
                 sh.append(prop.density)
                 sh.append(round(self.nm.sqm(i), 1))
                 sh.append(prop.mattypeid)
-            #sh.sort(key=lambda x: [int(xmattypeid),int(xthickness)], reverse=True)
+            # sh.sort(key=lambda x: [int(xmattypeid),int(xthickness)], reverse=True)
         return sh
-    
+
     def t_components(self, tpp=None):
         'Таблица комлпектующих'
         comp = []
-        uid = [4, 10]    # шт компл.
+        uid = [4, 10]  # шт компл.
         for i in uid:
-            acclist = self.nm.accbyuid(i, tpp)
+            acclist = self.nm.acc_by_uid(i, tpp)
             if acclist:
                 comp.append(acclist)
-        accln = self.nm.acclong(tpp)
+        accln = self.nm.acc_long(tpp)
         if accln:
             comp.append(accln)
         for i in comp:
@@ -59,7 +62,7 @@ class Specific:
                 j['PriceCoeff'] = prop.get('PriceCoeff')
                 j['WasteCoeff'] = prop.get('WasteCoeff')
         return comp
-    
+
     def t_bands(self, add=0, tpp=None):
         'Таблица кромок'
         res = self.nm.bands(add, tpp)
@@ -71,13 +74,13 @@ class Specific:
             i['UnitsName'] = prop.get('UnitsName')
             i['Price'] = prop.get('Price')
             i['BandType'] = int(prop.get('BandType'))
-            i['Length'] = round(i.get('Length'),1)
+            i['Length'] = round(i.get('Length'), 1)
         res.sort(key=lambda x: x['BandType'])
         return res
-    
+
     def t_profiles(self, tpp=None):
         'Таблица кусков профилей'
-        res = self.pf.pflist(tpp)
+        res = self.pf.profiles(tpp)
         dic = []
         keys = ('UnitPos', 'Length', 'ColorID', 'FormType')
         for i in res:
@@ -96,10 +99,10 @@ class Specific:
             tmp['stepcut'] = prop.get('stepcut')
             dic.append(tmp)
         return dic
-    
+
     def t_sumprof(self, tpp=None):
         'Таблица профилей'
-        res = self.pf.sumcount(tpp)
+        res = self.pf.total(tpp)
         dic = []
         keys = ('PriceID', 'Length', 'ColorID')
         for i in res:
@@ -116,18 +119,18 @@ class Specific:
             tmp['stepcut'] = prop.get('stepcut')
             dic.append(tmp)
         return dic
-    
+
     def t_longs(self, tpp=None):
         'Таблица длиномеров'
         keys = ('UnitPos', 'LongType', 'LongTable', 'LongMatID', 'LongGoodsID')
         dic = []
-        res = self.ln.llist(tpp)
+        res = self.ln.long_list(tpp)
         for i in res:
             tmp = dict(zip(keys, i))
             prop = self.nm.properties(tmp['LongMatID'])
             tngoods = self.bs.tngoods(tmp['LongMatID'])
             tmp['GroupName'] = tngoods['GroupName']
-            
+
             tmp['Price'] = prop['Price']
             tmp['UnitsName'] = prop['UnitsName']
             tmp['PriceCoeff'] = prop.get('PriceCoeff')
@@ -141,27 +144,22 @@ class Specific:
         return dic
 
 
-
-
-
-
 def start():
-    
     sp = Specific(db)
     for i in sp.t_sheets():
         print(i)
-    #for i in sp.t_longs():
-        #print(i)
+    # for i in sp.t_longs():
+    # print(i)
+
 
 if __name__ == '__main__':
-    
-    
+
     file = (r'd:\К3\КМ\КМ черновик\46\46.mdb')
-    #file = (r'd:\K3\2017\57\57.mdb')
-    #file = (r'd:\PKMProjects73\42\42.mdb')
-    
+    # file = (r'd:\K3\2017\57\57.mdb')
+    # file = (r'd:\PKMProjects73\42\42.mdb')
+
     db = db.DB()
-    tmp = db.open(file)    # Подключаемся к базе выгрузки
+    tmp = db.open(file)  # Подключаемся к базе выгрузки
     if tmp == 'NoFile':
         print('Такой базы данных нет')
         raise SystemExit(1)
@@ -170,4 +168,3 @@ if __name__ == '__main__':
     except:
         print('Произошла ошибка во время создания отчёта')
     db.close()
-    

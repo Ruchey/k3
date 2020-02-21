@@ -1,13 +1,28 @@
 # -*- coding: utf-8 -*-
 
-import time
-from instapy_cli import client
+from collections import OrderedDict, namedtuple
+from  pprint import pprint
 
-username = 'shkafkupebel'
-password = 'A621e238'
-image = r'd:\dj\skb\media\photolog\JPG\73.jpg'
+import k3r
+from pprint import pprint
 
-image_files = [r'd:\dj\skb\media\photolog\JPG\72.jpg', r'd:\dj\skb\media\photolog\JPG\71.jpg', r'd:\dj\skb\media\photolog\JPG\70.jpg']
+num = 1
+fileDB = r'd:\К3\Самара\Самара черновик\{0}\{0}.mdb'.format(num)
+projreppath = r'd:\К3\Самара\Самара черновик\{0}\Reports'.format(num)
+project = "Деталировка"
+db = k3r.db.DB()
+db.open(fileDB)
+pr = k3r.prof.Profile(db)
+p = pr.profiles()
+nm = k3r.nomenclature.Nomenclature(db)
+acc = nm.acc_by_uid()
+acl = nm.acc_long()
+pprint(acc)
+print()
+pprint(acl)
 
-with client(username, password, bypass_suspicious_attempt=True) as cli:
-    cli.upload(image, story=True)
+db.close()
+pass
+
+# Вывод: unitpos, type, table, mat_id, goodsid
+# 'type', 'matid', 'length', 'goodsid'

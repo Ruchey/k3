@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import k3Report
+import k3r
 import os
 import openpyxl
 from collections import namedtuple
@@ -10,22 +10,22 @@ class Report:
     
     def __init__(self, db):
         
-        self.nm = k3Report.nomenclature.Nomenclature(db)
-        self.bs = k3Report.base.Base(db)
-        self.pn = k3Report.panel.Panel(db)
-        self.xl = k3Report.doc.DocOpenpyxl()
+        self.nm = k3r.nomenclature.Nomenclature(db)
+        self.bs = k3r.base.Base(db)
+        self.pn = k3r.panel.Panel(db)
+        self.xl = k3r.doc.Doc()
 
     def newsheet(self, name):
         """Создаём новый лист с именем"""
     
-        self.xl.sheetorient = self.xl.PORTRAIT
-        self.xl.rightmargin = 0.6
-        self.xl.leftmargin = 0.6
-        self.xl.bottommargin = 1.6
-        self.xl.topmargin = 1.6
-        self.xl.centerhorizontally = 0
-        self.xl.displayzeros = False
-        self.xl.newsheet(name)
+        self.xl.sheet_orient = self.xl.PORTRAIT
+        self.xl.right_margin = 0.6
+        self.xl.left_margin = 0.6
+        self.xl.bottom_margin = 1.6
+        self.xl.top_margin = 1.6
+        self.xl.center_horizontally = 0
+        self.xl.display_zeros = False
+        self.xl.new_sheet(name)
         return
     
     def totalmat(self, matid, tpp=None):
@@ -34,7 +34,7 @@ class Report:
         Mat = namedtuple('Mat', 'name unit cnt')
         mat_name = self.nm.property_name(matid, 'Name')
         mat_unit = self.nm.property_name(matid, 'UnitsName')
-        mat_cnt = self.nm.matcount(matid, tpp)
+        mat_cnt = self.nm.mat_count(matid, tpp)
         mat = Mat(mat_name, mat_unit, mat_cnt)
         list_bands = self.pn.total_bands_to_panels(self.pn.list_panels(matid, tpp))
         bands = []
@@ -87,14 +87,38 @@ class Report:
                             band_x2, band_y1, band_y2, note
                             )
                 listPan.append(pans)
-        newlist = k3Report.utils.groupbykey(listPan, 'cpos', 'cnt')
+        newlist = k3r.utils.group_by_key(listPan, 'cpos', 'cnt')
         return newlist
+
+    def makereport(self, tpp=None):
+        # 'Формируем данные'
+        matid = self.nm.mat_by_uid(2, tpp)
+        if not matid:
+            return
+        listmat = []
+        listDSP = []
+        listMDF = []
+        listDVP = []
+        listGLS = []
+        for i in matid:
+            prop = self.nm.properties(i)
+            if prop.mattypeid == 128:
+                listDSP.append(prop)
+            elif prop.mattypeid == 64:
+                listMDF.append(prop)
+            elif prop.mattypeid == 37:
+                listDVP.append(prop)
+            elif prop.mattypeid in [48, 99]:
+                listGLS.append(prop)
+            else:
+                listmat.append(prop)
+
 
 
 def start(fileDB, projreppath, project):
 
     # Подключаемся к базе выгрузки
-    db = k3Report.db.DB()
+    db = k3r.db.DB()
     db.open(fileDB)
 
     rep = Report(db)
