@@ -51,7 +51,7 @@ class Long:
             7	Балюстрада
         """
         keys = ('unitpos', 'type', 'table', 'matid', 'goodsid', 'length', 'width', 'height', 'cnt', 'form')
-        filter_lt = "WHERE LongType={}".format(lt) if lt else ""
+        filter_lt = "WHERE LongType={}".format(lt) if not lt is None else ""
         pref = " AND" if lt else "WHERE"
         filter_tpp = "{} te.TopParentPos={}".format(pref, tpp) if tpp else ""
         sql = "SELECT tl.UnitPos, tl.LongType AS lt, tl.LongTable, te.PriceID, tl.LongGoodsID, " \
@@ -83,8 +83,13 @@ class Long:
                 nlst[i[1:5]] = []
             nlst[i[1:5]].append(i[0])
         for i in nlst.items():
-            sql_pan = "SELECT Round(Sum([tp].[Length]*[tp].[Width]/10^6*[te].[Count]), 2) AS Cnt FROM TElems AS te " \
-                      "INNER JOIN TPanels AS tp ON te.UnitPos = tp.UnitPos WHERE te.ParentPos in {}".format(tuple(i[1]))
+            sql_pan = "SELECT Switch(" \
+                      "tnn.UnitsID=1, Sum(tp.Length*te.Count)/10^3," \
+                      "tnn.UnitsID=2, Sum(tp.Length*tp.Width/10^6*te.Count)," \
+                      "tnn.UnitsID=3, Sum(tp.Length*tp.Width*tp.Thickness/10^9*te.Count)," \
+                      "tnn.UnitsID not in (1,2,3), 0) AS Cnt FROM (TElems AS te LEFT JOIN TPanels AS tp ON " \
+                      "te.UnitPos = tp.UnitPos) LEFT JOIN TNNomenclature AS tnn ON te.PriceID = tnn.ID " \
+                      "WHERE te.ParentPos in {} GROUP BY tnn.UnitsID".format(tuple(i[1]))
 
             sql_pf = "SELECT Round(Sum([tpf].[Length]/10^3*[te].[Count]), 2) AS Cnt " \
                      "FROM TElems AS te INNER JOIN TProfiles AS tpf ON te.UnitPos = tpf.UnitPos " \

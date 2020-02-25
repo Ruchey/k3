@@ -16,7 +16,7 @@ class Report:
         self.bs = k3r.base.Base(db)
         self.pn = k3r.panel.Panel(db)
         # Создаём объект документа
-        self.xl = k3r.doc.Doc()
+        self.xl = k3r.xl.Doc()
 
     def newsheet(self, name):
         """
@@ -47,11 +47,11 @@ class Report:
         val1 = ('Заказчик:', main_customer, '', 'Заказ №', order_number)
         val2 = ('Телефон:', main_phone, '', 'Заказчик:', order_customer)
         val3 = ('Дата отгрузки:', order_expirationdata)
-        self.xl.txt_format(row, 2, fsz=[12], bold='tfftf', italic='ftfft')
+        self.xl.formatting(row, 2, sz=[12], b='tfftf', itl='ftfft')
         row = self.xl.put_val(row, 2, val1)
-        self.xl.txt_format(row, 2, fsz=[12], bold='tfftf', italic='ftfft')
+        self.xl.formatting(row, 2, sz=[12], b='tfftf', itl='ftfft')
         row = self.xl.put_val(row, 2, val2)
-        self.xl.txt_format(row, 2, fsz=[12], bold='tfftf', italic='ftfft')
+        self.xl.formatting(row, 2, sz=[12], b='tfftf', itl='ftfft')
         row = self.xl.put_val(row, 2, val3)
         row += 1
 
@@ -164,8 +164,8 @@ class Report:
         self.xl.ws.merge_cells('J{0}:K{0}'.format(row1 + 1))
         self.xl.ws.merge_cells('L{0}:L{1}'.format(row1, row2))
         self.xl.style_to_range('A{0}:L{1}'.format(row1, row), 'Шапка 1')
-        self.xl.txt_format(row1, 1, h_align='c', v_align='cccccccccccc')
-        self.xl.txt_format(row1, 3, ort=[90, ])
+        self.xl.formatting(row1, 1, ha='c', va='cccccccccccc')
+        self.xl.formatting(row1, 3, r=[90, ])
         for imat in mat:
             pans = self.list_pan(imat.id, tpp)
             rang = 'A{0}:L{0}'.format(row)

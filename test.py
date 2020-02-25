@@ -15,11 +15,12 @@ db.open(fileDB)
 pr = k3r.prof.Profile(db)
 p = pr.profiles()
 nm = k3r.nomenclature.Nomenclature(db)
-acc = nm.acc_by_uid()
-acl = nm.acc_long()
-pprint(acc)
+bn = nm.bands()
+ln = k3r.long.Long(db)
+
+pprint(pr.profiles())
+pprint(pr.total())
 print()
-pprint(acl)
 
 db.close()
 pass

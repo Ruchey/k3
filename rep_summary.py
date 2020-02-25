@@ -13,7 +13,7 @@ class Report:
         self.nm = k3r.nomenclature.Nomenclature(db)
         self.bs = k3r.base.Base(db)
         self.pn = k3r.panel.Panel(db)
-        self.xl = k3r.doc.Doc()
+        self.xl = k3r.xl.Doc()
 
     def newsheet(self, name):
         """Создаём новый лист с именем"""

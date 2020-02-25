@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Виноградов А.Г. г.Белгород  август 2015'
 
-import openpyxl
 import os
 
-from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font, NamedStyle
-from openpyxl.utils.units import cm_to_EMU, EMU_to_inch, pixels_to_points
+import openpyxl
+from openpyxl.styles import PatternFill, Border, Side, Alignment, Font, NamedStyle
+from openpyxl.utils.units import cm_to_EMU, EMU_to_inch
 
 
 def num_to_col(col_number):
@@ -79,28 +79,30 @@ class Doc:
     def generate_styles(self):
         """Создание базовых стилей"""
         styles = [
-            {'name': 'Заголовок 1', 'sc': 'F2F2F2', 'ec': 'F2F2F2', 'bc': 'D9D9D9', 'bold': True, 'horAlign': 'right',
+            {'name': 'Заголовок 1', 'sc': 'F2F2F2', 'ec': 'F2F2F2', 'bc': 'D9D9D9', 'b': True, 'horAlign': 'right',
              'bb': 'thin', 'ft': 'solid'},
-            {'name': 'Заголовок 2', 'sc': 'D9D9D9', 'ec': 'D9D9D9', 'bc': 'BFBFBF', 'bold': True, 'horAlign': 'right',
+            {'name': 'Заголовок 2', 'sc': 'D9D9D9', 'ec': 'D9D9D9', 'bc': 'BFBFBF', 'b': True, 'horAlign': 'right',
              'bb': 'thin', 'ft': 'solid'},
-            {'name': 'Заголовок 3', 'sc': '8DB4E2', 'ec': '8DB4E2', 'bc': '16365C', 'bold': True, 'horAlign': 'right',
+            {'name': 'Заголовок 3', 'sc': '8DB4E2', 'ec': '8DB4E2', 'bc': '16365C', 'b': True, 'horAlign': 'right',
              'bb': 'thin', 'ft': 'solid'},
-            {'name': 'Заголовок 4', 'sc': 'B8CCE4', 'ec': 'B8CCE4', 'bc': '366092', 'bold': True, 'horAlign': 'right',
+            {'name': 'Заголовок 4', 'sc': 'B8CCE4', 'ec': 'B8CCE4', 'bc': '366092', 'b': True, 'horAlign': 'right',
              'bb': 'thin', 'ft': 'solid'},
-            {'name': 'Заголовок 5', 'sc': 'E6B8B7', 'ec': 'E6B8B7', 'bc': '963634', 'bold': True, 'horAlign': 'right',
+            {'name': 'Заголовок 5', 'sc': 'E6B8B7', 'ec': 'E6B8B7', 'bc': '963634', 'b': True, 'horAlign': 'right',
              'bb': 'thin', 'ft': 'solid'},
-            {'name': 'Заголовок 6', 'sc': 'D8E4BC', 'ec': 'D8E4BC', 'bc': '76933C', 'bold': True, 'horAlign': 'right',
+            {'name': 'Заголовок 6', 'sc': 'D8E4BC', 'ec': 'D8E4BC', 'bc': '76933C', 'b': True, 'horAlign': 'right',
              'bb': 'thin', 'ft': 'solid'},
-            {'name': 'Заголовок 7', 'sc': 'CCC0DA', 'ec': 'CCC0DA', 'bc': '60497A', 'bold': True, 'horAlign': 'right',
+            {'name': 'Заголовок 7', 'sc': 'CCC0DA', 'ec': 'CCC0DA', 'bc': '60497A', 'b': True, 'horAlign': 'right',
              'bb': 'thin', 'ft': 'solid'},
-            {'name': 'Заголовок 8', 'sc': 'B7DEE8', 'ec': 'B7DEE8', 'bc': '31869B', 'bold': True, 'horAlign': 'right',
+            {'name': 'Заголовок 8', 'sc': 'B7DEE8', 'ec': 'B7DEE8', 'bc': '31869B', 'b': True, 'horAlign': 'right',
              'bb': 'thin', 'ft': 'solid'},
+            {'name': 'Итоги 1', 'sc': 'FABF8F', 'ec': 'FABF8F', 'bc': 'E26B0A', 'b': True, 'horAlign': 'right',
+             'bb': 'thin', 'bt': 'thick', 'ft': 'solid'},
             {'name': 'Таблица 1', 'bl': 'thin', 'br': 'thin', 'bt': 'thin', 'bb': 'thin', 'wr': True, 'bc': '808080'},
-            {'name': 'Шапка 1', 'bl': 'thin', 'br': 'thin', 'bt': 'thin', 'bb': 'thin', 'bold': True}
+            {'name': 'Шапка 1', 'bl': 'thin', 'br': 'thin', 'bt': 'thin', 'bb': 'thin', 'b': True}
         ]
 
         for s in styles:
-            font = Font(name=self.font, size=self.fontsize, bold=s.get('bold', False), italic=s.get('italic', False),
+            font = Font(name=self.font, size=self.fontsize, bold=s.get('b', False), italic=s.get('itl', False),
                         vertAlign=s.get('vertAlign'), underline='none', strike=False, color=s.get('txtclr', '000000'))
             fill = PatternFill(fill_type=s.get('ft'), start_color=s.get('sc'), end_color=s.get('ec'))
 
@@ -122,6 +124,7 @@ class Doc:
             tab.fill = fill
             tab.border = border
             tab.alignment = alignment
+            tab.number_format = None
             self.wb.add_named_style(tab)
 
     def save(self, pathname='test.xlsx'):
@@ -141,6 +144,7 @@ class Doc:
 
     def row_size(self, rw, sz):
         """Устанавливает размеры строк"""
+        # TODO: адаптировать под новый модуль
         if type(sz) != list:
             self.wb.ActiveSheet.Rows(rw).RowHeight = sz
         else:
@@ -181,51 +185,51 @@ class Doc:
             if fill:
                 cells.fill = filling
 
-    def paint_cells_none(self, rw, clm, ln=1):
-        """Цвет заливки ячейки НЕТ"""
-        # TODO: адаптировать под новый модуль
-        cells = num_to_col(clm) + str(rw) + ":" + num_to_col(clm + ln - 1) + str(rw)
-        range = self.wb.ActiveSheet.Range(cells)
-        range.Interior.Pattern = -4142
-        range.Interior.TintAndShade = 0
-        range.Interior.PatternTintAndShade = 0
-        range.Font.ColorIndex = -4105
-        range.Font.TintAndShade = 0
-
-    def txt_format(self, rw, clm, h_align=None, v_align=None, wrap='f', nf=('',),
-                   ort=(None,), fsz=(None,), bold=None, italic='f'):
+    def formatting(self, rw, clm, ha=None, va=None, wrap=None, bld=None, itl=None,
+                   nf=None, rot=None, sz=None):
         """Выравнивание текста в ячейках по горизонтали и вертикали; перенос текста; формат числа
-           h_align: l-xlLeft, r-xlRight, c-xlCenter
-           v_align: t-xlTop, c-xlCenter, b-xlBottom
-           wrap: f-False, t-True
-           nf-NumberFormat: "General" по умолчанию "Общий". Передаётся списком
-           ort-orientation: Ориентация текста (поворот в градусах)
-           bold - жирный текст f-False, t-True
-           """
-        al = {'l': 'left', 'r': 'right', 'c': 'center', 't': 'top', 'b': 'bottom'}
+        :param int rw: row - Строка
+        :param int clm: column - Колонка
+        :param str ha: horizontal align = l - xlLeft, r - xlRight, c - xlCenter
+        :param str va: vertical align =  t - xlTop, c - xlCenter, b - xlBottom
+        :param str wrap: f - False, t - True
+        :param list|tuple|str nf: NumberFormat "General" по умолчанию "Общий". Передаётся списком
+        :param list|tuple|int rot: rotate: Ориентация текста (поворот в градусах)
+        :param str bld: bold жирный текст f-False, t-True
+        :param list|tuple|int sz: size font Размер шрифта
+        :param str itl: italic Курсивный шрифт
+        """
+        align = {'l': 'left', 'r': 'right', 'c': 'center', 't': 'top', 'bld': 'bottom'}
         ft = {'f': False, 't': True}
-        if h_align:
-            h_align = h_align.lower()
-        if v_align:
-            v_align = v_align.lower()
-        wrap = wrap.lower()
-        if bold:
-            bold = bold.lower()
-        lst = [h_align, v_align, wrap, nf, ort, fsz, bold]
+        if ha:
+            ha = ha.lower()
+        if va:
+            va = va.lower()
+        if wrap:
+            wrap = wrap.lower()
+        if bld:
+            bld = bld.lower()
+        if type(rot) not in (list, tuple):
+            rot = (rot,)
+        if type(sz) not in [list, tuple]:
+            sz = (sz,)
+        if type(nf) not in [list, tuple]:
+            nf = (nf,)
+        lst = [ha, va, wrap, bld, itl, nf, rot, sz]
         rw_len = len(max((i for i in lst if i is not None), key=len))
         for i in range(rw_len):
             cells = num_to_col(clm + i) + str(rw)
-            h = al[h_align[min(i, len(h_align) - 1)]] if h_align else None
-            v = al[v_align[min(i, len(v_align) - 1)]] if v_align else None
-            w = ft[wrap[min(i, len(wrap) - 1)]]
-            n = nf[min(i, len(nf) - 1)]
-            b = ft[bold[min(i, len(bold) - 1)]] if bold else None
-            it = ft[italic[min(i, len(italic) - 1)]]
-            o = ort[min(i, len(ort) - 1)]
-            fz = fsz[min(i, len(fsz) - 1)]
+            h = align[ha[min(i, len(ha) - 1)]] if ha else None
+            v = align[va[min(i, len(va) - 1)]] if va else None
+            w = ft[wrap[min(i, len(wrap) - 1)]] if wrap else None
+            b = ft[bld[min(i, len(bld) - 1)]] if bld else self.ws[cells].font.b
+            it = ft[itl[min(i, len(itl) - 1)]] if itl else self.ws[cells].font.i
+            r = rot[min(i, len(rot) - 1)] if any(rot) else self.ws[cells].alignment.textRotation
+            fz = sz[min(i, len(sz) - 1)] if any(sz) else self.ws[cells].font.sz
+            n = nf[min(i, len(nf) - 1)] if any(nf) else self.ws[cells].number_format
 
             self.ws[cells].alignment = Alignment(horizontal=h, vertical=v,
-                                                 text_rotation=o,
+                                                 text_rotation=r,
                                                  wrap_text=w)
             self.ws[cells].font = Font(size=fz, bold=b, italic=it)
             self.ws[cells].number_format = n
@@ -326,7 +330,7 @@ class Doc:
         """Условное форматирование
            rang - диапозон ("A:C")
            tp - Type Определяет, основан ли условный формат на значении ячейки или выражении
-           op - Operator Условный оператор формата. Может быть одна из следующих констант XlFormatConditionOperator: 
+           op - Operator Условный оператор формата. Может быть одна из следующих констант XlFormatConditionOperator:
                 xlBetween, xlEqual, xlGreater, xlGreaterEqual, xlLess, xlLessEqual, xlNotBetween, или xlNotEqual.
                 Если Тип - xlExpression, аргумент Оператора проигнорирован
            f1 - Formula1 Значение или выражение связанное с условным форматированием. Может быть постоянное значение, строковое значение, ссылка на ячейку или формула.
@@ -343,3 +347,8 @@ class Doc:
         for rng in cells:
             for cell in rng:
                 cell.style = style
+
+    def named_ranges(self, name, attr_txt):
+        new_range = openpyxl.workbook.defined_name.DefinedName(name, attr_text=attr_txt)
+        self.wb.defined_names.append(new_range)
+        return

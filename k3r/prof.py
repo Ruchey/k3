@@ -13,16 +13,17 @@ class Profile:
     def profiles(self, tpp=None):
         """Возвращает список именованных кортежей профилей.
         Не включает профиля длиномеров
-        unitpos, length, colorid, formtype
+        unitpos, length, colorid, formtype, priceid
         """
-        keys = ('unitpos', 'length', 'colorid', 'formtype')
+        keys = ('priceid', 'length', 'formtype', 'cnt')
         filter_tpp = " AND te.TopParentPos={}".format(tpp)
         if tpp is None:
             filter_tpp = ""
-        sql = "SELECT tpf.UnitPos, tpf.Length, tpf.ColorID, tpf.FormType FROM TProfiles AS tpf " \
-              "INNER JOIN TElems AS te ON tpf.UnitPos = te.UnitPos " \
+        sql = "SELECT te.PriceID, tpf.Length, tpf.FormType, SUM(te.Count) FROM TProfiles AS tpf " \
+              "LEFT JOIN TElems AS te ON tpf.UnitPos = te.UnitPos " \
               "WHERE NOT EXISTS(SELECT te.UnitPos FROM TElems AS te, TLongs AS tl " \
-              "WHERE te.ParentPos=tl.UnitPos AND te.UnitPos=tpf.UnitPos){}".format(filter_tpp)
+              "WHERE te.ParentPos=tl.UnitPos AND te.UnitPos=tpf.UnitPos){} " \
+              "GROUP BY te.PriceID, tpf.Length, tpf.FormType ORDER BY te.PriceID".format(filter_tpp)
         res = self.db.rs(sql)
         l_res = []
         if res:
@@ -36,12 +37,12 @@ class Profile:
         priceid, length, colorid, formtype
         thick - толщина пилы прибавляемая к каждому отрезку
         """
-        keys = ('priceid', 'length', 'colorid', 'formtype')
+        keys = ('priceid', 'length')
         filter_tpp = " AND te.TopParentPos={}".format(tpp)
         if tpp is None:
             filter_tpp = ""
         thick = 4
-        sql = "SELECT te.PriceID, Sum(([tpf].[Length]+{1})*[te].[Count]) AS Length, tpf.ColorID " \
+        sql = "SELECT te.PriceID, ROUND(Sum(([tpf].[Length]+{1})*[te].[Count])/1000, 2) AS Length " \
               "FROM TProfiles AS tpf INNER JOIN TElems AS te ON tpf.UnitPos = te.UnitPos " \
               "WHERE (((Exists (SELECT te.UnitPos FROM TElems AS te, TLongs AS tl " \
               "WHERE te.ParentPos=tl.UnitPos AND te.UnitPos=tpf.UnitPos))=False)){0} " \

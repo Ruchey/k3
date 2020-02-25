@@ -102,6 +102,11 @@ class Nomenclature:
             res4 = list(zip(keys, self.db.rs(sql4)[0]))
         res = utils.norm_key_prop(res1 + res2 + res3 + res4)
         if res:
+            res_keys = dict(res).keys()
+            if 'wastecoeff' not in res_keys:
+                res.append(('wastecoeff', 1))
+            if 'pricecoeff' not in res_keys:
+                res.append(('pricecoeff', 1))
             Prop = namedtuple('Prop', [x[0] for x in res])
             return Prop(**dict(res))
         else:
