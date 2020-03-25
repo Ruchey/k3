@@ -1,29 +1,21 @@
-# -*- coding: utf-8 -*-
-
-from collections import OrderedDict, namedtuple
-from  pprint import pprint
-
+import os
 import k3r
-from pprint import pprint
 
-num = 1
-fileDB = r'd:\К3\Самара\Самара черновик\{0}\{0}.mdb'.format(num)
-projreppath = r'd:\К3\Самара\Самара черновик\{0}\Reports'.format(num)
-project = "Деталировка"
-db = k3r.db.DB()
-db.open(fileDB)
-pr = k3r.prof.Profile(db)
-p = pr.profiles()
-nm = k3r.nomenclature.Nomenclature(db)
-bn = nm.bands()
-ln = k3r.long.Long(db)
 
-pprint(pr.profiles())
-pprint(pr.total())
-print()
+fl = r'd:\test.xlsx'
+xl = k3r.xl.Doc()
+xl.new_sheet('Деталировка')
+pic = r'c:\Users\Александр\Pictures\ram.jpg'
+# print(xl.get_col_size(10, 6))
+print(xl.get_row_size(1, 10))
 
-db.close()
-pass
+# xl.paint_cells('A1:E5', fill='cccccc')
+# xl.pic_insert(1, 1, path=pic, align='c', valign='c', max_col=5, max_row=5)
+xl.paint_cells('A1:E20', fill='cccccc')
+xl.pic_insert(1, 1, path=pic, align='l', valign='t', max_col=5, max_row=20)
+# xl.pic_insert(1, 6, path=pic, align='l', valign='c', max_col=5, max_row=20)
+# xl.pic_insert(1, 12, path=pic, align='l', valign='b', max_col=5, max_row=20)
 
-# Вывод: unitpos, type, table, mat_id, goodsid
-# 'type', 'matid', 'length', 'goodsid'
+
+xl.save(fl)
+os.startfile(fl)

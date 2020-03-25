@@ -1,11 +1,19 @@
-from pprint import pprint
+import os
+import xlsxwriter
 
-import openpyxl
 
 
-num = 1
-proj_rep_path = r'd:\К3\Самара\Самара черновик\1\Reports\Деталировка.xlsx'
-wb = openpyxl.load_workbook(proj_rep_path)
-ws = wb.active
-a =1
+pic = r'c:\Users\Александр\Pictures\skylink 2.jpg'
+wb = xlsxwriter.Workbook(r'd:\test.xlsx')
+ws = wb.add_worksheet('Тест')
+
+cell_format = wb.add_format()
+
+cell_format.set_bottom(1)  # This is optional when using a solid fill.
+cell_format.set_bottom_color('green')
+
+ws.write('A1', 'Ray', cell_format)
+ws.set_column(1,3,1)
+
 wb.close()
+os.startfile(r'd:\test.xlsx')

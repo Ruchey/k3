@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
-__author__ = 'Виноградов А.Г. г.Белгород  август 2015'
 
 import os
-
 import openpyxl
+
 from openpyxl.styles import PatternFill, Border, Side, Alignment, Font, NamedStyle
-from openpyxl.utils.units import cm_to_EMU, EMU_to_inch
+from openpyxl.drawing.image import Image
+from openpyxl.utils.units import cm_to_EMU, EMU_to_inch, pixels_to_EMU
+from openpyxl.drawing.spreadsheet_drawing import OneCellAnchor, AnchorMarker
+from openpyxl.drawing.xdr import XDRPositiveSize2D
+from openpyxl.worksheet.datavalidation import DataValidation as dv
+
+__author__ = 'Виноградов А.Г. г.Белгород  август 2015'
 
 
 def num_to_col(col_number):
@@ -32,8 +37,9 @@ class Doc:
 
     def __init__(self):
         """Создание объекта Excel, инициализация умолчаний"""
-        self.xl = openpyxl
-        self.wb = self.xl.Workbook()
+        self.op = openpyxl
+        self.dv = dv
+        self.wb = self.op.Workbook()
         self.ws = self.wb.active
         self.PORTRAIT = self.ws.ORIENTATION_PORTRAIT
         self.LANDSCAPE = self.ws.ORIENTATION_LANDSCAPE
@@ -54,6 +60,14 @@ class Doc:
         self.font = "Arial Narrow"
         self.fontsize = 12
         self.display_zeros = False
+
+        # for font Calibri 11
+        self.default_row_height = 15
+        self.default_row_pixels = 20
+        self.default_col_width = 8.43
+        self.default_col_pixels = 64
+        # Зазор в кол-ве символа добавляемый к ширине столбца
+        self.margin = 0.7109375
 
         self.generate_styles()
         self.F_RUB = openpyxl.styles.numbers.BUILTIN_FORMATS[42]
@@ -77,7 +91,20 @@ class Doc:
         self.ws.sheet_properties.tabColor = tab_color
 
     def generate_styles(self):
-        """Создание базовых стилей"""
+        """Создание базовых стилей
+        Названия стилей:
+            'Заголовок 1'
+            'Заголовок 2'
+            'Заголовок 3'
+            'Заголовок 4'
+            'Заголовок 5'
+            'Заголовок 6'
+            'Заголовок 7'
+            'Заголовок 8'
+            'Итоги 1'
+            'Таблица 1'
+            'Шапка 1'
+        """
         styles = [
             {'name': 'Заголовок 1', 'sc': 'F2F2F2', 'ec': 'F2F2F2', 'bc': 'D9D9D9', 'b': True, 'horAlign': 'right',
              'bb': 'thin', 'ft': 'solid'},
@@ -131,25 +158,81 @@ class Doc:
         """Сохраняем документ"""
         self.wb.save(pathname)
 
-    def column_size(self, clm, sz):
+    def col_size(self, clm, sz):
         """Устанавливает размеры столбцов"""
 
         if type(sz) not in (list, tuple):
-            col = num_to_col(sz)
-            self.ws.column_dimensions[col].width = sz + 0.7109375
+            col = num_to_col(clm)
+            self.ws.column_dimensions[col].width = sz + self.margin # 0.7109375
         else:
-            for i, cs in enumerate(sz):
+            for i, val in enumerate(sz):
                 col = num_to_col(clm + i)
-                self.ws.column_dimensions[col].width = cs + 0.7109375
+                self.ws.column_dimensions[col].width = val + self.margin # 0.7109375
+
+    def get_col_size(self, col=1, cnt=1):
+        """Возвращает ширину колонки или сумму ширин колонок в единицах документа и пикселях (symbols, px)
+        Keyword arguments:
+            col -- int номер начального столбца
+            cnt -- int количество столбцов
+        Returns:
+            tuple (symbols, px)
+        """
+        def _col_px(width):
+            max_digit_width = 7  # For Calabri 11.
+            padding = 5
+            if width is not None:
+                if width < 1:
+                    pixels = int(width * (max_digit_width + padding) + 0.5)
+                else:
+                    pixels = int(width * max_digit_width + 0.5) + padding
+            else:
+                pixels = self.default_col_pixels
+            return pixels
+
+        size = 0
+        for i in range(cnt):
+            clm = num_to_col(col+i)
+            sz = self.ws.column_dimensions[clm].width
+            if sz is None:
+                sz = self.default_col_width
+            size += sz
+        size = round(size - self.margin, 2)
+        px = _col_px(size)
+        return size, px
 
     def row_size(self, rw, sz):
         """Устанавливает размеры строк"""
-        # TODO: адаптировать под новый модуль
-        if type(sz) != list:
-            self.wb.ActiveSheet.Rows(rw).RowHeight = sz
-        else:
-            for (val, i) in zip(sz, range(len(sz))):
-                self.wb.ActiveSheet.Rows(rw + i).RowHeight = val
+
+        if type(sz) not in (list, tuple):
+            self.ws.row_dimensions[rw].height = sz
+        if type(sz) in (list, tuple):
+            for i, val in enumerate(sz):
+                self.ws.row_dimensions[rw + i].height = val
+
+    def get_row_size(self, rw=1, cnt=1):
+        """Возвращает высоту строки сумму ширин высот в единицах документа и пикселях (symbols, px)
+        Keyword arguments:
+            rw -- int номер начальной строки
+            cnt -- int количество строк
+        Returns:
+            tuple (symbols, px)
+        """
+        def _row_px(height):
+            if height is not None:
+                pixels = int(4.0 / 3.0 * height)
+            else:
+                pixels = int(4.0 / 3.0 * self.default_row_height)
+            return pixels
+
+        size = 0
+        px = 0
+        for i in range(cnt):
+            sz = self.ws.row_dimensions[rw+i].height
+            px += _row_px(sz)
+            if sz is None:
+                sz = self.default_row_height
+            size += sz
+        return size, px
 
     def column_fit(self, clm, ln=1):
         """Установка авторазмера колонок"""
@@ -185,20 +268,29 @@ class Doc:
             if fill:
                 cells.fill = filling
 
-    def formatting(self, rw, clm, ha=None, va=None, wrap=None, bld=None, itl=None,
-                   nf=None, rot=None, sz=None):
-        """Выравнивание текста в ячейках по горизонтали и вертикали; перенос текста; формат числа
-        :param int rw: row - Строка
-        :param int clm: column - Колонка
-        :param str ha: horizontal align = l - xlLeft, r - xlRight, c - xlCenter
-        :param str va: vertical align =  t - xlTop, c - xlCenter, b - xlBottom
-        :param str wrap: f - False, t - True
-        :param list|tuple|str nf: NumberFormat "General" по умолчанию "Общий". Передаётся списком
-        :param list|tuple|int rot: rotate: Ориентация текста (поворот в градусах)
-        :param str bld: bold жирный текст f-False, t-True
-        :param list|tuple|int sz: size font Размер шрифта
-        :param str itl: italic Курсивный шрифт
+    def formatting(self, rw=1, col=1, **kwargs):
+        """Форматирует ячейки
+        Keyword arguments:
+            rw -- int Строка
+            col -- int - Колонка
+            ha -- str horizontal align = l - xlLeft, r - xlRight, c - xlCenter
+            va -- str vertical align =  t - xlTop, c - xlCenter, b - xlBottom
+            wrap -- str f - False, t - True
+            nf -- list|tuple|str NumberFormat "General" по умолчанию "Общий". Передаётся списком
+            rot -- list|tuple|int rotate Ориентация текста (поворот в градусах)
+            bld -- str bold жирный текст f-False, t-True
+            sz -- list|tuple|int size font Размер шрифта
+            itl -- str italic Курсивный шрифт
         """
+        ha = kwargs.get('ha', None)
+        va = kwargs.get('va', None)
+        wrap = kwargs.get('wrap', None)
+        bld = kwargs.get('bld', None)
+        itl = kwargs.get('itl', None)
+        nf = kwargs.get('nf', None)
+        rot = kwargs.get('rot', None)
+        sz = kwargs.get('sz', None)
+
         align = {'l': 'left', 'r': 'right', 'c': 'center', 't': 'top', 'bld': 'bottom'}
         ft = {'f': False, 't': True}
         if ha:
@@ -218,7 +310,7 @@ class Doc:
         lst = [ha, va, wrap, bld, itl, nf, rot, sz]
         rw_len = len(max((i for i in lst if i is not None), key=len))
         for i in range(rw_len):
-            cells = num_to_col(clm + i) + str(rw)
+            cells = num_to_col(col + i) + str(rw)
             h = align[ha[min(i, len(ha) - 1)]] if ha else None
             v = align[va[min(i, len(va) - 1)]] if va else None
             w = ft[wrap[min(i, len(wrap) - 1)]] if wrap else None
@@ -263,51 +355,84 @@ class Doc:
         # TODO: адаптировать под новый модуль
         self.wb.Sheets(s1).Move(Before=self.wb.Sheets(s2))
 
-    def pic_insert(self, rw, clm, ln=1, hg=1, file='', hor='c', ver='c'):
-        """Вставка картинки"""
-        # TODO: адаптировать под новый модуль
-        if not os.path.exists(file):
+    def pic_insert(self, rw=1, col=1, **kwargs):
+        """Вставка картинки
+        Keyword arguments:
+            rw -- int номер строки
+            col -- int номер колонки
+            max_col -- int количество занимаемых колонок
+            max_row -- int количество занимаемых строк
+            path -- str путь к картинке
+            align -- str буквенное обозначеение горизонтального выравнивания картинки:
+                l - left
+                r - right
+                c - center
+            valign -- str буквенное обозначеение вертикального выравнивания картинки:
+                t - top
+                c - center
+                b - bottom
+            cf -- float коэффициент размера картинки, 1 = 100%
+            fit -- bool вписать картинку в пределы ячеек default(True)
+            px -- int количество пикселей зазор до границы
+        """
+
+        path = kwargs.get('path', '')
+        cf = kwargs.get('cf', 1)
+        max_col = kwargs.get('max_col', 1)
+        max_row = kwargs.get('max_row', 1)
+        align = kwargs.get('align', 'l')
+        valign = kwargs.get('valign', 't')
+        fit = kwargs.get('fit', True)
+        px = kwargs.get('px', 0)
+
+        if not os.path.exists(path):
             return None
-        cells = num_to_col(clm) + str(rw) + ":" + num_to_col(clm + abs(ln) - 1) + str(rw + abs(hg) - 1)
-        TargetCells = self.wb.ActiveSheet.Range(cells)
-        pic = self.wb.ActiveSheet.Shapes.AddPicture(file, 0, 1, -1, -1, -1, -1)
-        lWscale = pic.Height / pic.Width
-        pic.LockAspectRatio = 0
-        pic.Height = TargetCells.Height
-        pic.Width = TargetCells.Width
-        Aspect = TargetCells.Height / TargetCells.Width
-        if lWscale < Aspect:
-            pic.ScaleHeight((lWscale / Aspect), 0, 0)
-            pic.ScaleHeight(0.9, 0, 0)
-            pic.ScaleWidth(0.9, 0, 0)
-        else:
-            pic.ScaleWidth((Aspect / lWscale), 0, 0)
-        hor = hor.lower()
-        ver = ver.lower()
-        ph = pic.Height
-        pw = pic.Width
-        tch = TargetCells.Height
-        tcw = TargetCells.Width
-        hl = TargetCells.Left
-        hc = TargetCells.Left + (tcw - pw) / 2
-        hr = TargetCells.Left + (tcw - pw)
-        vt = TargetCells.Top
-        vc = TargetCells.Top + (tch - ph) / 2
-        vb = TargetCells.Top + (tch - ph)
+
+        img = Image(path)
+        img_h, img_w = img.height, img.width
+        p2e = pixels_to_EMU
+
+        cell_h = self.get_row_size(rw, max_row)[1]
+        cell_w = self.get_col_size(col, max_col)[1]
+        if fit:
+            img_ratio = img_w / img_h
+            img_h = cell_h
+            img_w = img_h * img_ratio
+            if img_w > cell_w:
+                img_w = cell_w
+                img_h = img_w / img_ratio
+        img_h *= cf
+        img_w *= cf
+        img_size = XDRPositiveSize2D(p2e(img_w), p2e(img_h))
+
+        d_h = cell_h - img_h
+        d_w = cell_w - img_w
+        hl = px
+        hr = d_w - px
+        hc = cell_w / 2 - img_w / 2
+        vt = px
+        vb = d_h - px
+        vc = d_h / 2
         h_align = {'l': hl, 'c': hc, 'r': hr}
         v_align = {'t': vt, 'c': vc, 'b': vb}
-        pic.Top = v_align[ver]
-        pic.Left = h_align[hor]
-        pic.LockAspectRatio = 1
+        row_offset = p2e(v_align[valign])
+        col_offset = p2e(h_align[align])
 
-    def put_val(self, row=1, column=1, value=''):
-        """Запись данных в ячейки"""
+        marker = AnchorMarker(col=col-1, colOff=col_offset, row=rw-1, rowOff=row_offset)
+        img.anchor = OneCellAnchor(_from=marker, ext=img_size)
+        self.ws.add_image(img)
 
+    def put_val(self, row=1, col=1, value=''):
+        """Запись данных в ячейки
+        Аргументы:
+            row -- int Строка, начиная с 1
+            col -- int Столбец, начиная с 1
+        """
         if type(value) in (list, tuple):
-            for col, val in enumerate(value):
-                self.ws.cell(row, column + col, val)
+            for i, val in enumerate(value):
+                self.ws.cell(row, col+i, val)
         else:
-            self.ws.cell(row, column, value)
+            self.ws.cell(row, col, value)
         return row + 1
 
     def print_area(self, rw, clm, ln, hg):
@@ -315,16 +440,6 @@ class Doc:
         # TODO: адаптировать под новый модуль
         cells = num_to_col(clm) + str(rw) + ":" + num_to_col(clm + abs(ln) - 1) + str(rw + abs(hg) - 1)
         self.wb.ActiveSheet.PageSetup.PrintArea = cells
-
-    def table_style(self, rw, clm, ln, hg, tabname, style='TableStyleLight2', st=True):
-        """Задать таблицу стилей"""
-        # TODO: адаптировать под новый модуль
-        cells = num_to_col(clm) + str(rw) + ":" + num_to_col(clm + abs(ln) - 1) + str(rw + abs(hg) - 1)
-        range = self.wb.ActiveSheet.Range(cells)
-        self.wb.ActiveSheet.ListObjects.Add(1, range, 0, 1).Name = tabname
-        self.wb.ActiveSheet.ListObjects(tabname).TableStyle = style
-        self.wb.ActiveSheet.ListObjects(tabname).ShowTotals = st
-        range.AutoFilter()
 
     def format_cond(self, rang, tp, op, f1, f2):
         """Условное форматирование
@@ -341,14 +456,32 @@ class Doc:
         self.wb.ActiveSheet.Range(rang).FormatConditions.Add(tp, op, f1, f2)
 
     def style_to_range(self, rang, style):
-        """Применение стиля к диапазону ячеек"""
-
+        """Применение стиля к диапазону ячеек
+        Аргументы:
+            rang -- str 'A1:F6'
+            style -- str:
+                'Заголовок 1'
+                'Заголовок 2'
+                'Заголовок 3'
+                'Заголовок 4'
+                'Заголовок 5'
+                'Заголовок 6'
+                'Заголовок 7'
+                'Заголовок 8'
+                'Итоги 1'
+                'Таблица 1'
+                'Шапка 1'
+        """
         cells = self.ws[rang]
         for rng in cells:
             for cell in rng:
                 cell.style = style
 
     def named_ranges(self, name, attr_txt):
+        """Создаёт именованный диапазон
+        Аргументы:
+            name -- str например, 'res_sum'
+            attr_txt -- str например, 'sheet!$H$10'
+        """
         new_range = openpyxl.workbook.defined_name.DefinedName(name, attr_text=attr_txt)
         self.wb.defined_names.append(new_range)
-        return

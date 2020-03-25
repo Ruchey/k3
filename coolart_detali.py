@@ -56,7 +56,7 @@ class Report:
         row += 1
 
         cs = [5, 16, 3, 14, 9, 9, 5, 3, 3, 3, 3, 16]
-        self.xl.column_size(1, cs)
+        self.xl.col_size(1, cs)
         return row
 
     def totalmat(self, matid, tpp=None):

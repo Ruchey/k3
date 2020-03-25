@@ -19,19 +19,19 @@ class Nomenclature:
         """Выводит список аксессуаров
         uid = id единицы измерения
         tpp = TopParentPos ID верхнего хозяина аксессуара
-        Вывод: id, name, article, unitsname, count, price
+        Вывод: id, name, article, unitsname, cnt, price, priceid
         """
         filter_uid = "AND tnn.UnitsID={}".format(uid) if uid else ""
         filter_tpp = "AND te.TopParentPos={}".format(tpp) if tpp else ""
         where = " ".join(["tnn.UnitsID<>11", filter_uid, filter_tpp])
-        keys = ('id', 'name', 'article', 'unitsname', 'cnt', 'price')
+        keys = ('id', 'name', 'article', 'unitsid', 'unitsname', 'cnt', 'price', 'priceid')
 
-        sql = "SELECT ID, [Name], Article, UnitsName, Sum(Cnt/IIf(UnitsID=10,accCnt,1)), Price FROM " \
-              "(SELECT tnn.ID, tnn.Name, tnn.Article, tnn.UnitsID, tnn.UnitsName, (te.Count) AS Cnt, tnn.Price, " \
-              "(Select (Max(ta1.AccType)-Min(ta1.AccType))+1 from TAccessories AS ta1 where ta1.AccMatID=ta.AccMatID) AS accCnt " \
-              "FROM (TAccessories AS ta LEFT JOIN TNNomenclature AS tnn ON ta.AccMatID = tnn.ID) LEFT JOIN TElems AS te " \
-              "ON ta.UnitPos = te.UnitPos WHERE {0}) GROUP BY ID, [Name], Article, UnitsName, Price " \
-              "ORDER BY [Name]".format(where)
+        sql = "SELECT ID, [Name], Article, UnitsID, UnitsName, Sum(Cnt/IIf(UnitsID=10,accCnt,1)), Price, PriceID " \
+              "FROM (SELECT tnn.ID, tnn.Name, tnn.Article, tnn.UnitsID, tnn.UnitsName, (te.Count) AS Cnt" \
+              ", tnn.Price, te.PriceID, (Select (Max(ta1.AccType)-Min(ta1.AccType))+1 from TAccessories AS ta1 " \
+              "where ta1.AccMatID=ta.AccMatID) AS accCnt FROM (TAccessories AS ta LEFT JOIN TNNomenclature AS tnn " \
+              "ON ta.AccMatID = tnn.ID) LEFT JOIN TElems AS te ON ta.UnitPos = te.UnitPos WHERE {0}) " \
+              "GROUP BY ID, [Name], Article, UnitsID, UnitsName, Price, PriceID ORDER BY [Name]".format(where)
         res = self.db.rs(sql)
         l_res = []
         for i in res:
@@ -43,10 +43,11 @@ class Nomenclature:
         """Список погонажных комплектующих, таких как сетки
            tpp = TopParentPos ID верхнего хозяина аксессуара
            ID, Название, артикль, ед.изм., длина, кол-во, цена
+           Вывод: id, name, article, unitsname, length, cnt, price, priceid
         """
         filter_tpp = ('WHERE te.TopParentPos={}'.format(tpp) if tpp else '')
-        keys = ('id', 'name', 'article', 'unitsname', 'length', 'cnt', 'price')
-        sql = "SELECT tnn.ID, tnn.Name, tnn.Article, tnn.UnitsName, te.XUnit/1000, te.Count, tnn.Price " \
+        keys = ('id', 'name', 'article', 'unitsname', 'length', 'cnt', 'price', 'priceid')
+        sql = "SELECT tnn.ID, tnn.Name, tnn.Article, tnn.UnitsName, te.XUnit/1000, te.Count, tnn.Price, te.PriceID " \
               "FROM TElems AS te INNER JOIN TNNomenclature AS tnn ON te.PriceID = tnn.ID " \
               "WHERE te.FurnType Like '07%' {0} ORDER BY te.Name".format(filter_tpp)
         res = self.db.rs(sql)

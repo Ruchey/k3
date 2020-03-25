@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+from . import base, db, xl, xlw, long, nomenclature, panel, prof, utils
+
 __author__ = 'Виноградов А.Г. г.Белгород  август 2015'
 
 # Модуль для создания отчётов для программы К3-Мебель
@@ -11,6 +12,4 @@ __author__ = 'Виноградов А.Г. г.Белгород  август 2015
 # Long класс для работы с длиномерами
 
 
-from . import base, db, xl, long, nomenclature, panel, prof, utils
-
-__all__ = ['base', 'db', 'xl.py', 'long', 'nomenclature', 'panel', 'prof.py', 'utils']
+# __all__ = ['base', 'db', 'xl', 'xlw', 'long', 'nomenclature', 'panel', 'prof.py', 'utils']
