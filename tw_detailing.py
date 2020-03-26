@@ -1,28 +1,31 @@
 # -*- coding: utf-8 -*-
 
 import os
-from collections import namedtuple, OrderedDict
-
 import k3r
+import k3
+from collections import namedtuple, OrderedDict
 
 
 class Report:
-    def __init__(self, db, cnt_scrap=50, scrap_rate=2, margin=3, block_res=True, client=True, joiners=True):
+    def __init__(self, db, **kwargs):
+        """Инициализация отчёта
+        Входные данные:
+            db -- object База данных
+        Keyword arguments:
+            cnt_scrap -- int Колличество фурнитуры, при котором учитывается коэф. брака
+            scrap_rate -- int Процент брака на фурнитуру. Используется при кол-ве более 50шт
+            margin -- float Коэффициент наценки от себестоимости
+            block_res -- bool Блок результатов на главном листе. Вкл или Выкл.
+            client -- bool Создавать лист для клиентов
+            joiners -- bool Создавать лист для столяров
         """
-        @param db: База данных
-        @type cnt_scrap: Колличество фурнитуры, при котором учитывается коэф. брака
-        @param scrap_rate: Коэффициент брака на фурнитуру. Используется при кол-ве более 50шт
-        @type margin: Коэффициент наценки
-        @param block_res: Блок результатов на главном листе. Вкл или Выкл.
-        @param client: Лист для клиентов
-        @param joiners: Лист для столяров
-        """
-        self.cnt_scrap = cnt_scrap
-        self.scrap_rate = scrap_rate
-        self.margin = margin
-        self.block_res = block_res
-        self.client = client
-        self.joiners = joiners
+
+        self.cnt_scrap = kwargs.get('cnt_scrap', 50)
+        self.scrap_rate = kwargs.get('scrap_rate', 2)
+        self.margin = kwargs.get('margin', 3.0)
+        self.block_res = kwargs.get('block_res', True)
+        self.client = kwargs.get('client', True)
+        self.joiners = kwargs.get('joiners', True)
         self.nm = k3r.nomenclature.Nomenclature(db)
         self.bs = k3r.base.Base(db)
         self.pn = k3r.panel.Panel(db)
@@ -72,14 +75,16 @@ class Report:
         executor = to.executor if to.executor else ''
         acceptor = to.acceptor if to.acceptor else ''
         addinfo = to.additionalinfo if to.additionalinfo else ''
-        data = to.orderexpirationdata if to.orderexpirationdata.year > 2000 else ''
+        data = ''
+        if to.orderexpirationdata.year > 2000:
+            data = to.orderexpirationdata.strftime("%m.%d.%y")
         val1 = [
             ('Заказ №{0}'.format(number)),
             ('Название: {0}'.format(name)),
             ('Заказчик: {0} Телефон: {1}'.format(customer, phone)),
             ('Адрес: {0}'.format(adr)),
             ('Приёмщик: {0} Исполнитель: {1}'.format(acceptor, executor)),
-            ('Дата исполнения: {}'.format(data.strftime("%m.%d.%y")), '', 'Собирать в цехе', '', '', 'корпусном'),
+            ('Дата исполнения: {}'.format(data), '', 'Собирать в цехе', '', '', 'корпусном'),
             ('Дополнительно: {}'.format(addinfo))
         ]
         val2 = [
@@ -503,8 +508,8 @@ class Report:
         self.header(cs=(47, 47), pg=3)
         pg = 'Деталировка'
         i = 1
-        if self.links_tab_sheets:
-            for vl in self.links_tab_sheets:
+        if list_mats:
+            for vl in list_mats:
                 pic = vl['pic']
                 if pic:
                     row = vl['head']
@@ -539,18 +544,71 @@ class Report:
             self.page_joiners()
         if self.client:
             self.page_client()
+        return True
+
+
+def make():
+    rep_name = "Деталировка"
+    folder_rep = "Reports"
+    pr_file_path = k3.sysvar(2)
+    pr_dir = os.path.dirname(pr_file_path)
+    pr_name = os.path.splitext(os.path.basename(pr_file_path))[0]
+    rep_dir = os.path.join(pr_dir, folder_rep)
+    rep_file_name = '{}.xlsx'.format(rep_name)
+    rep_file_path = os.path.join(rep_dir, rep_file_name)
+    db_file_name = '{}.mdb'.format(pr_name)
+    db_file_path = os.path.join(pr_dir, db_file_name)
+
+    base = k3r.db.DB()
+    base.open(db_file_path)
+    rep = Report(base, cnt_scrap=cnt_scrap.value, scrap_rate=scrap_rate.value, margin=margin.value,
+                 block_res=block_res.value, client=client.value, joiners=joiners.value)
+    print("Создается отчет. Пожалуйста, подождите.", 1)
+    result = rep.create()
+    base.close()
+
+    if result:
+        rep.xl.save(rep_file_path)
+        k3.regreport(111, 0, rep_name)
+        os.startfile(rep_file_path)
+
+    else:
+        k3.alternative("Ошибка создания отчета", k3.k_msgbox, k3.k_picture, 1, k3.k_beep, 1, k3.k_text, k3.k_left,
+                       "В процессе создания отчета произошла ошибка", "Отчет '{0}' не создан!".format(rep_name),
+                       k3.k_done, "  OK  ", k3.k_done)
 
 
 if __name__ == '__main__':
-    num = 1
-    fileDB = r'd:\К3\Самара\Самара черновик\{0}\{0}.mdb'.format(num)
-    proj_rep_path = r'd:\К3\Самара\Самара черновик\{0}\Reports'.format(num)
-    project = "Деталировка"
-    file_path = os.path.join(proj_rep_path, '{}.xlsx'.format(project))
-    base = k3r.db.DB()
-    base.open(fileDB)
-    rep = Report(base)
-    rep.create()
-    rep.xl.save(file_path)
-    base.close()
-    os.startfile(file_path)
+
+    cnt_scrap = k3.Var()
+    scrap_rate = k3.Var()
+    margin = k3.Var()
+    block_res = k3.Var()
+    client = k3.Var()
+    joiners = k3.Var()
+
+    cnt_scrap.value = 50
+    scrap_rate.value = 2
+    margin.value = 3.0
+    block_res.value = False
+    client.value = False
+    joiners.value = False
+
+    ParList = []
+    ParList.append(["Создаём отчёт деталировки", "", k3.k_left, k3.k_captionok,
+                    "Запустить", k3.k_captioncancel, "Отменить", "Данные отчёта:", k3.k_done])
+    # ParList.append((k3.k_real, k3.k_auto, k3.k_default, cnt_scrap.value,
+    #                 "Колличество фурнитуры, при котором учитывается коэф. брака:", cnt_scrap))
+    # ParList.append((k3.k_real, k3.k_auto, k3.k_default, scrap_rate.value, "Процент брака на фурнитуру:", scrap_rate))
+    # ParList.append((k3.k_real, k3.k_auto, k3.k_default, margin.value, "Коэффициент наценки от себестоимости:", margin))
+    ParList.append((k3.k_logical, k3.k_default, block_res.value, "Блок расчётов стоимости:", block_res))
+    ParList.append((k3.k_logical, k3.k_default, client.value, "Создавать лист для клиентов:", client))
+    ParList.append((k3.k_logical, k3.k_default, joiners.value, "Создавать лист для столяров:", joiners))
+    ParList.append(k3.k_done)
+    WhatNext = k3.setvar(ParList)
+    ParList.clear()
+    if int(WhatNext[0]) == 1:
+        make()
+
+
+
