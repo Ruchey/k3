@@ -144,9 +144,11 @@ class Report:
         mats.sort(key=lambda x: x.thickness, reverse=True)
         for mat in mats:
             pans = self.get_pans(self.pn.list_panels(mat.id, tpp))
-            pic = getattr(mat, 'pictures', '')
+            pic = getattr(mat, 'picturefile', '')
+            if pic:
+                pic = os.path.join(pic_dir, pic[1:])
             wc = mat.wastecoeff
-            wood = getattr(mat, 'wood', 1)
+            wood = getattr(mat, 'wood', 0)
             total = '=SUM(F{0}:F{1})*{2}'.format(self.row + 1, self.row + len(pans), wc)
             val = (mat.name, '', '', '', mat.unitsname, total, mat.price, self.cost())
             self.sum_mat_cells.append('H{}'.format(self.row))
@@ -179,8 +181,10 @@ class Report:
                                and lg.goodsid == i.goodsid)
             prop = self.nm.properties(i.matid)
             goods = self.bs.tngoods(i.goodsid)
-            wood = getattr(prop, 'wood', 1)
-            pic = getattr(prop, 'pictures', '')
+            wood = getattr(prop, 'wood', 0)
+            pic = getattr(prop, 'picturefile', '')
+            if pic:
+                pic = os.path.join(pic_dir, pic[1:])
             name = '{0} {1} {2}'.format(goods.groupname, goods.name, prop.name)
             name = ' '.join(OrderedDict((w, 0) for w in name.split()).keys())
             wc = prop.wastecoeff
@@ -222,9 +226,11 @@ class Report:
         for i in self.pr.total():
             filter_prof = list(pr for pr in profiles_list if pr.priceid == i.priceid)
             prop = self.nm.properties(i.priceid)
-            wood = getattr(prop, 'wood', 1)
+            wood = getattr(prop, 'wood', 0)
             upl_prof = getattr(prop, 'upl_prof', 0)
-            pic = getattr(prop, 'pictures', '')
+            pic = getattr(prop, 'picturefile', '')
+            if pic:
+                pic = os.path.join(pic_dir, pic[1:])
             wc = prop.wastecoeff
             len_wc = '={0}*{1}'.format(i.length, wc)
             val = (prop.name, '', '', '', prop.unitsname, len_wc, prop.price, self.cost())
@@ -259,8 +265,10 @@ class Report:
         self.xl.style_to_range('A{0}:H{1}'.format(self.row, end_row), 'Таблица 1')
         for ac in acc:
             prop = self.nm.properties(ac.priceid)
-            wood = getattr(prop, 'wood', 1)
-            pic = getattr(prop, 'pictures', '')
+            wood = getattr(prop, 'wood', 0)
+            pic = getattr(prop, 'picturefile', '')
+            if pic:
+                pic = os.path.join(pic_dir, pic[1:])
             name = ac.name
             if ac.article:
                 name += ' арт.{}'.format(ac.article)
@@ -277,8 +285,10 @@ class Report:
             self.links_tab_acc.append({'head': self.row - 1, 'pic': pic, 'wd': wood})
         for ac in acc_long:
             prop = self.nm.properties(ac.priceid)
-            wood = getattr(prop, 'wood', 1)
-            pic = getattr(prop, 'pictures', '')
+            wood = getattr(prop, 'wood', 0)
+            pic = getattr(prop, 'picturefile', '')
+            if pic:
+                pic = os.path.join(pic_dir, pic[1:])
             name = ac.name
             if ac.article:
                 name += ' арт.{}'.format(ac.article)
@@ -373,13 +383,16 @@ class Report:
         self.row = 1
         pg = 'Деталировка'
         self.header(pg=2)
-        if self.links_tab_sheets:
+        wood = any(d['wd'] for d in self.links_tab_sheets)
+        if self.links_tab_sheets and wood:
             self.section_heading(self.row, 'Листовые материалы', 'Заголовок 2')
             val = ('№', 'Наименование', 'Д-на', 'Ш-на', 'шт', 'Всего', 'Цена', 'Стоимость')
             self.put_val(val)
             self.xl.style_to_range('A{0}:H{0}'.format(self.row - 1), 'Заголовок 3')
             self.xl.formatting(self.row - 1, 1, ha='cccccccc', va='c')
             for i in self.links_tab_sheets:
+                if not i['wd']:
+                    continue
                 row = i['head']
                 val = (
                     '={0}!A{1}'.format(pg, row), '', '', '', '={0}!E{1}'.format(pg, row), '={0}!F{1}'.format(pg, row),
@@ -397,7 +410,8 @@ class Report:
                 self.xl.paint_cells('F{0}:F{1}'.format(start_row, self.row - 1), ink='B5B5B5')
                 self.xl.ws.row_dimensions.group(start_row, self.row - 1, hidden=True)
 
-        if self.links_tab_long:
+        wood = any(d['wd'] for d in self.links_tab_long)
+        if self.links_tab_long and wood:
             self.section_heading(self.row, 'Длиномеры', 'Заголовок 2')
             val = ('Наименование', '', 'Д-на', 'Ш-на', 'шт', 'Всего', 'Цена', 'Стоимость')
             self.put_val(val)
@@ -405,6 +419,8 @@ class Report:
             self.xl.ws.merge_cells('A{0}:B{0}'.format(self.row - 1))
             self.xl.formatting(self.row - 1, 1, ha='cccccccc', va='c')
             for i in self.links_tab_long:
+                if not i['wd']:
+                    continue
                 row = i['head']
                 val = (
                     '={0}!A{1}'.format(pg, row), '', '', '', '={0}!E{1}'.format(pg, row), '={0}!F{1}'.format(pg, row),
@@ -431,7 +447,8 @@ class Report:
                 self.xl.paint_cells('F{0}:F{1}'.format(start_row, self.row - 2), ink='B5B5B5')
                 self.xl.ws.row_dimensions.group(start_row, self.row - 2, hidden=False)
 
-        if self.links_tab_profiles:
+        wood = any(d['wd'] for d in self.links_tab_profiles)
+        if self.links_tab_profiles and wood:
             self.section_heading(self.row, 'Профиля', 'Заголовок 2')
             val = ('Наименование', '', '', '', 'арт', 'Всего', 'Цена', 'Стоимость')
             self.put_val(val)
@@ -439,6 +456,8 @@ class Report:
             self.xl.ws.merge_cells('A{0}:D{0}'.format(self.row - 1))
             self.xl.formatting(self.row - 1, 1, ha='cccccccc', va='c')
             for i in self.links_tab_profiles:
+                if not i['wd']:
+                    continue
                 row = i['head']
                 val = (
                     '={0}!A{1}'.format(pg, row), '', '', '', '={0}!E{1}'.format(pg, row), '={0}!F{1}'.format(pg, row),
@@ -466,12 +485,15 @@ class Report:
                 self.xl.paint_cells('F{0}:F{1}'.format(start_row, self.row - 1), ink='B5B5B5')
                 self.xl.ws.row_dimensions.group(start_row, self.row - 1, hidden=False)
 
-        if self.links_tab_acc:
+        wood = any(d['wd'] for d in self.links_tab_acc)
+        if self.links_tab_acc and wood:
             self.section_heading(self.row, 'Комплектующие', 'Заголовок 2')
             start_row = self.row
             end_row = self.row + len(self.links_tab_acc) - 1
             self.xl.style_to_range('A{0}:H{1}'.format(self.row, end_row), 'Таблица 1')
             for i in self.links_tab_acc:
+                if not i['wd']:
+                    continue
                 row = i['head']
                 val = (
                     '={0}!A{1}'.format(pg, row), '', '', '', '={0}!E{1}'.format(pg, row), '={0}!F{1}'.format(pg, row),
@@ -580,6 +602,7 @@ def make():
 
 if __name__ == '__main__':
 
+    pic_dir = k3.mpathexpand("<Pictures>")
     cnt_scrap = k3.Var()
     scrap_rate = k3.Var()
     margin = k3.Var()
