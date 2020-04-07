@@ -69,13 +69,13 @@ class Doc:
         # Зазор в кол-ве символа добавляемый к ширине столбца
         self.margin = 0.7109375
 
-        self.generate_styles()
         self.F_RUB = openpyxl.styles.numbers.BUILTIN_FORMATS[42]
 
     def new_sheet(self, name, tab_color=None):
         """Добавление листа"""
 
         if self.first:
+            self.generate_styles()
             self.ws.title = name[:31]
             self.first = False
         else:
@@ -96,13 +96,18 @@ class Doc:
             'Заголовок 1'
             'Заголовок 2'
             'Заголовок 3'
+            'Заголовок 32'
             'Заголовок 4'
+            'Заголовок 42'
             'Заголовок 5'
+            'Заголовок 52'
             'Заголовок 6'
+            'Заголовок 62'
             'Заголовок 7'
             'Заголовок 8'
             'Итоги 1'
             'Таблица 1'
+            'Линейка 1
             'Шапка 1'
         """
         styles = [
@@ -122,9 +127,18 @@ class Doc:
              'bb': 'thin', 'ft': 'solid'},
             {'name': 'Заголовок 8', 'sc': 'B7DEE8', 'ec': 'B7DEE8', 'bc': '31869B', 'b': True, 'horAlign': 'right',
              'bb': 'thin', 'ft': 'solid'},
+            {'name': 'Заголовок 32', 'sc': '8DB4E2', 'ec': '8DB4E2', 'bc': '16365C', 'b': True, 'horAlign': 'right',
+             'bb': 'double', 'bt': 'double', 'ft': 'solid'},
+            {'name': 'Заголовок 42', 'sc': 'B8CCE4', 'ec': 'B8CCE4', 'bc': '366092', 'b': True, 'horAlign': 'right',
+             'bb': 'double', 'bt': 'double', 'ft': 'solid'},
+            {'name': 'Заголовок 52', 'sc': 'E6B8B7', 'ec': 'E6B8B7', 'bc': '963634', 'b': True, 'horAlign': 'right',
+             'bb': 'double', 'bt': 'double', 'ft': 'solid'},
+            {'name': 'Заголовок 62', 'sc': 'D8E4BC', 'ec': 'D8E4BC', 'bc': '76933C', 'b': True, 'horAlign': 'right',
+             'bb': 'double', 'bt': 'double', 'ft': 'solid'},
             {'name': 'Итоги 1', 'sc': 'FABF8F', 'ec': 'FABF8F', 'bc': 'E26B0A', 'b': True, 'horAlign': 'right',
              'bb': 'thin', 'bt': 'thick', 'ft': 'solid'},
             {'name': 'Таблица 1', 'bl': 'thin', 'br': 'thin', 'bt': 'thin', 'bb': 'thin', 'wr': True, 'bc': '808080'},
+            {'name': 'Линейка 1', 'bb': 'thin', 'wr': True, 'bc': '808080'},
             {'name': 'Шапка 1', 'bl': 'thin', 'br': 'thin', 'bt': 'thin', 'bb': 'thin', 'b': True}
         ]
 

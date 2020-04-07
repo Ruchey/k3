@@ -17,9 +17,11 @@ class Panel:
 
     def list_panels(self, mat_id=None, tpp=None):
         """Получить список панелей по материалу
-           mat_id - id материала из которого сделана панель
-           tpp - главный родитель панели
-           Результат: [1190, 497, 502, 1185]
+        Keyword arguments:
+            mat_id - id материала из которого сделана панель
+            tpp - главный родитель панели
+        Returns:
+            [id 1, id 2, ..., id n]
         """
 
         filter_id = "AND tnn.ID={}".format(mat_id) if mat_id else ""
@@ -29,11 +31,11 @@ class Panel:
         sql = "SELECT te.UnitPos FROM TElems AS te INNER JOIN TNNomenclature AS tnn " \
               "ON te.PriceID = tnn.ID WHERE {0} ORDER BY te.CommonPos".format(where)
         res = self.db.rs(sql)
-        id = []
+        list_id = []
         if res:
             for i in res:
-                id.append(i[0])
-        return id
+                list_id.append(i[0])
+        return list_id
 
     @lru_cache(maxsize=6)
     def xunit(self, unitpos):
@@ -262,15 +264,15 @@ class Panel:
         else:
             return False
 
-    def frezerovka(self, unitpos):
+    def milling(self, up):
         """Список фрезеровок данной панели"""
 
-        sql = "SELECT attrstring FROM TAttributes WHERE name='frezerovka' AND unitpos = {}".format(unitpos)
+        sql = "SELECT AttrString FROM TAttributes WHERE name='frezerovka' AND UnitPos = {}".format(up)
         res = self.db.rs(sql)
         if res:
-            return tuple(itertools.chain.from_iterable(res))
+            return res[0][0]
         else:
-            return ()
+            return ''
 
     @lru_cache(maxsize=6)
     def priceid(self, unitpos):
@@ -373,43 +375,101 @@ class Panel:
         else:
             return SVW((0, 0, 0))
 
-    def radius(self, unitpos):
+    def par_bent_pan(self, unitpos):
         """Возвращает именованный кортеж
+        chord - хорда по концам панели
         rad - радиус панели
-        axis - ось гиба OX или OY
+        axis - ось гиба OX - 1 или OY - 2
         """
-        ax = {1: 'OX', 2: 'OY'}
-        Rad = namedtuple('Rad', 'rad axis')
+        Rad = namedtuple('Rad', 'rad chord axis')
         radius = 0
-        bend = 0  # ось гиба: 1 - OX 2 - OY
+        chord = 0
+        axis = 0  # ось гиба: 1 - OX 2 - OY
         form = self.form(unitpos)  # узнаём форму панели
 
         if form == 1:  # дуга по хорде
-            sql = "SELECT abs(tpm1.NumValue) AS Caving, tpm2.NumValue AS Chord, tpm3.NumValue AS Bend " \
-                  "FROM TParams AS tpm1, TParams AS tpm2, TParams AS tpm3 " \
-                  "WHERE (((tpm1.UnitPos)={0}) AND ((tpm1.ParamName)='ArcChord.Caving') AND ((tpm2.UnitPos)={0}) AND " \
-                  "((tpm2.ParamName)='ArcChord.Chord') AND ((tpm3.UnitPos)={0}) " \
-                  "AND ((tpm3.ParamName)='BendAxis'))".format(unitpos)
-
+            sql = "SELECT abs(tpm1.NumValue) AS chord, tpm2.NumValue AS chaving, tpm3.NumValue AS axis, " \
+                  "tpm4.NumValue AS b, tpm5.NumValue AS c, tpm6.NumValue AS d, tpm7.NumValue AS e, " \
+                  "tpm8.NumValue AS Length, tpm9.NumValue AS width FROM TParams AS tpm1, TParams AS tpm2, " \
+                  "TParams AS tpm3, TParams AS tpm4, TParams AS tpm5, TParams AS tpm6, TParams AS tpm7, " \
+                  "TParams AS tpm8, TParams AS tpm9 WHERE " \
+                  "tpm1.UnitPos={0} AND tpm1.ParamName='ArcChord.Chord' " \
+                  "AND tpm2.UnitPos={0} AND tpm2.ParamName='ArcChord.Caving' " \
+                  "AND tpm3.UnitPos={0} AND tpm3.ParamName='BendAxis' " \
+                  "AND tpm4.UnitPos={0} AND (tpm4.ParamName='ShavSide' AND tpm4.Hold3=3) " \
+                  "AND tpm5.UnitPos={0} AND (tpm5.ParamName='ShavSide' AND tpm5.Hold3=1) " \
+                  "AND tpm6.UnitPos={0} AND (tpm6.ParamName='ShavSide' AND tpm6.Hold3=0) " \
+                  "AND tpm7.UnitPos={0} AND (tpm7.ParamName='ShavSide' AND tpm7.Hold3=2) " \
+                  "AND tpm8.UnitPos={0} AND tpm8.ParamName='Length'" \
+                  "AND tpm9.UnitPos={0} AND tpm9.ParamName='Width'".format(unitpos)
             res = self.db.rs(sql)
-            caving = res[0][0]
-            chord = res[0][1]
-            bend = ax[res[0][2]]
-            alfa = 2 * math.atan((2 * caving) / chord)
-            L = chord * (alfa / math.sin(alfa))
-            D = L / alfa
-            radius = D / 2
+            chord_0 = res[0][0]
+            caving = res[0][1]
+            axis = res[0][2]
+            b = -res[0][3]
+            c = -res[0][4]
+            d = -res[0][5]
+            e = -res[0][6]
+            length = res[0][7]
+            width = res[0][8]
+            left = d
+            right = e
+            arc_len = width
+            if axis == 2:
+                left = b
+                right = c
+                arc_len = length
+            min_side = min(left, right)
+            max_side = max(left, right)
+            l = chord_0 / 2
+            radius = (l ** 2 + caving ** 2) / (2 * caving)
+            alfa = arc_len * 180 / (math.pi * radius) # угол дуги
+            beta = math.radians(180 - (90 + (180 - alfa) / 2))  # угол, что бы найти основание трапеции
+            chord = chord_0 + 2 * min_side * math.cos(beta)  # основание трапеции
+            if left != right:
+                alfa_1 = math.radians((180 - (alfa / 2)))
+                side_b = max_side - min_side
+                chord = math.sqrt(side_b**2 + chord**2 - 2 * side_b * chord * math.cos(alfa_1))
 
         if form == 2:  # Два отрезка и дуга
-            sql = "SELECT tpm1.NumValue, tpm2.NumValue AS Bend FROM TParams AS tpm1, TParams AS tpm2 " \
-                  "WHERE (tpm1.UnitPos={0} AND tpm1.ParamName='LinesArc.R') AND (tpm2.UnitPos={0} " \
-                  "AND tpm2.ParamName='BendAxis')".format(unitpos)
+            sql = "SELECT abs(tpm1.NumValue) AS L1, tpm2.NumValue AS L2, tpm3.NumValue AS R, tpm4.NumValue AS axis, " \
+                  "tpm5.NumValue AS b, tpm6.NumValue AS c, tpm7.NumValue AS d, tpm8.NumValue AS e, " \
+                  "tpm9.NumValue AS Ang FROM TParams AS tpm1, TParams AS tpm2, " \
+                  "TParams AS tpm3, TParams AS tpm4, TParams AS tpm5, TParams AS tpm6, TParams AS tpm7, " \
+                  "TParams AS tpm8, TParams AS tpm9 WHERE " \
+                  "tpm1.UnitPos={0} AND tpm1.ParamName='LinesArc.L1' " \
+                  "AND tpm2.UnitPos={0} AND tpm2.ParamName='LinesArc.L2' " \
+                  "AND tpm3.UnitPos={0} AND tpm3.ParamName='LinesArc.R' " \
+                  "AND tpm4.UnitPos={0} AND tpm4.ParamName='BendAxis' " \
+                  "AND tpm5.UnitPos={0} AND (tpm5.ParamName='ShavSide' AND tpm5.Hold3=3) " \
+                  "AND tpm6.UnitPos={0} AND (tpm6.ParamName='ShavSide' AND tpm6.Hold3=1) " \
+                  "AND tpm7.UnitPos={0} AND (tpm7.ParamName='ShavSide' AND tpm7.Hold3=0) " \
+                  "AND tpm8.UnitPos={0} AND (tpm8.ParamName='ShavSide' AND tpm8.Hold3=2) " \
+                  "AND tpm9.UnitPos={0} AND tpm9.ParamName='LinesArc.A'".format(unitpos)
 
             res = self.db.rs(sql)
-            radius = res[0][0]
-            bend = ax[res[0][1]]
+            len_1 = res[0][0]
+            len_2 = res[0][1]
+            radius = res[0][2]
+            axis = res[0][3]
+            b = -res[0][4]
+            c = -res[0][5]
+            d = -res[0][6]
+            e = -res[0][7]
+            ang = math.radians(res[0][8])
+            left = d
+            right = e
+            if axis == 2:
+                left = b
+                right = c
+            side_1 = len_1 + left
+            side_2 = len_2 + right
+            chord = math.sqrt(side_1**2 + side_2**2 - 2 * side_1 * side_2 * math.cos(ang))
 
-        return Rad(round(radius, 1), bend)
+        chord = round(chord)
+        radius = abs(round(radius))
+        axis = int(axis)
+        return Rad(radius, chord, axis)
 
     @lru_cache(maxsize=6)
     def band_side(self, unitpos, IDLine, IDPoly=1):
@@ -497,9 +557,9 @@ class Panel:
         """Кромка вдоль длины одной стороны с учётом текстуры"""
 
         pdir = self.dir(unitpos)
-        if (45 < pdir <= 135):
+        if 45 < pdir <= 135:
             return self.band_b(unitpos)
-        elif (225 < pdir <= 315):
+        elif 225 < pdir <= 315:
             return self.band_c(unitpos)
         else:
             return self.band_e(unitpos)
@@ -554,7 +614,7 @@ class Panel:
                 lres.append(TBP(*i))
         return lres
 
-    def decorates(self, unitpos, map=5):
+    def decorates(self, up, map=5):
         """Определяет отделку панели выбранной карты map:
             1 - сторона E (Y+)
             2 - сторона D (Y-)
@@ -572,28 +632,15 @@ class Panel:
             -2 - все торцы"""
 
         sql = "SELECT td.materialid, td.typename, tnn.name FROM TDecorates AS td LEFT JOIN TNNomenclature AS tnn " \
-              "ON td.materialid=tnn.id WHERE unitpos = {} AND map = {}".format(unitpos, map)
-        decor = self.db.rs(sql)
+              "ON td.materialid=tnn.id WHERE Unitpos={} AND map={}".format(up, map)
+        res = self.db.rs(sql)
         abr = {'шпон': 'шп.', 'эмаль': 'эм.', 'пластик': 'пл.', 'плёнка (пвх)': 'ПВХ ', 'патина': 'пт.',
                'морилка': 'мор.', 'лак': ''}
         rep = ["шп.", "шпон", "Шпон", "эм.", "Эм.", "эмаль", "Эмаль"]
-        cntdec = len(decor)
-        decorname = ""
-        for i in range(cntdec):
-            typemat = decor[i][1]
-            matname = decor[i][2]
-            pref = typemat.lower()
-            for j in range(len(rep)):
-                matname = matname.replace(rep[j], "")
-            if pref in abr.keys():
-
-                decorname += abr[typemat.lower()] + matname
-            else:
-                decorname += typemat + matname
-            if i >= 0 and i < (cntdec - 1):
-                decorname += "+"
-
-        return decorname
+        dec = []
+        for i in res:
+            dec.append(i[2])
+        return ' '.join(dec)
 
     def cnt_drill_pans(self, tpp=None, hingoff=False):
         """Получить кол-во просверленных деталей. Сверловка с двух сторон считается, как две детали
@@ -708,6 +755,3 @@ class Panel:
         if not res:
             return 0
         return res[0][0]
-
-    def is_door_panel(self, unitpos):
-        """Определяет, является ли деталь частью рамочного фасада"""

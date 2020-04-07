@@ -2,6 +2,7 @@
 # Вспомогательные функции
 
 from collections import OrderedDict
+from itertools import groupby
 
 __author__ = 'Виноградов А.Г. г.Белгород июнь 2019'
 
@@ -51,3 +52,51 @@ def group_by_key(iterable, key, sum_field):
         cnt = sum(getattr(x, sum_field, 0) for x in items)
         new_list.append(items[0]._replace(**{sum_field: cnt}))
     return new_list
+
+
+def group_by_keys(iterable, keys, sum_field, stick_field=None):
+    """Группирует список по полю списку ключей key и суммирует по полю sum_field.
+    Дополнительное поле stick_field склеивает значения, например по полю cpos - номер детали.
+    На выходе получим cpos = '12;34;2'
+        iterable -- obj список именованных кортежей
+        key -- list названия полей для группировки
+        sum_field -- str название поля содержащие кол-во, которое будет суммироваться
+        stick_field -- str название поля для склейки их значений
+        было:
+            Pans(cpos=2, name='Стойка правая', length=584, width=400, cnt=1),
+            Pans(cpos=3, name='Стойка левая', length=584, width=400, cnt=1),
+        стало:
+            Pans(cpos='2;3', name='Стойка правая', length=584, width=400, cnt=2),
+        """
+    dist_keys = []
+    new_list = []
+    for i in iterable:
+        key_set = []
+        for j in keys:
+            key_set.append(getattr(i, j))
+            dist_keys.append(key_set)
+            dist_keys.sort()
+            dist_keys = [el for el, _ in groupby(dist_keys)]
+    for vals in dist_keys:
+        kv = list(zip(keys, vals))
+        items = [i for i in iterable if all(getattr(i, k) == v for k, v in kv)]
+        cnt = sum(getattr(x, sum_field) for x in items)
+        if stick_field:
+            stick_field_list = list(str(getattr(x, stick_field)) for x in items)
+            stick = ';'.join(OrderedDict.fromkeys(stick_field_list))
+            new_list.append(items[0]._replace(**{sum_field: cnt, stick_field: stick}))
+        else:
+            new_list.append(items[0]._replace(**{sum_field: cnt}))
+    return new_list
+
+
+def get_tree_parents(unitpos, table):
+    """Возвращает список связанных родителей"""
+    tree = []
+    el = [i for i in table if i[0] == unitpos]
+    if el:
+        tree.extend(el)
+        tree.extend(get_tree_parents(el[0][1], table))
+        return tree
+    else:
+        return tree

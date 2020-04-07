@@ -46,7 +46,7 @@ class Specific:
         return sh
 
     def t_components(self, tpp=None):
-        'Таблица комлпектующих'
+        """Таблица комлпектующих"""
         comp = []
         uid = [4, 10]  # шт компл.
         for i in uid:
@@ -64,7 +64,7 @@ class Specific:
         return comp
 
     def t_bands(self, add=0, tpp=None):
-        'Таблица кромок'
+        """Таблица кромок"""
         res = self.nm.bands(add, tpp)
         for i in res:
             prop = self.nm.properties(i.get('ID'))
@@ -79,7 +79,7 @@ class Specific:
         return res
 
     def t_profiles(self, tpp=None):
-        'Таблица кусков профилей'
+        """Таблица кусков профилей"""
         res = self.pf.profiles(tpp)
         dic = []
         keys = ('UnitPos', 'Length', 'ColorID', 'FormType')
@@ -101,7 +101,7 @@ class Specific:
         return dic
 
     def t_sumprof(self, tpp=None):
-        'Таблица профилей'
+        """Таблица профилей"""
         res = self.pf.total(tpp)
         dic = []
         keys = ('PriceID', 'Length', 'ColorID')
@@ -121,7 +121,7 @@ class Specific:
         return dic
 
     def t_longs(self, tpp=None):
-        'Таблица длиномеров'
+        """Таблица длиномеров"""
         keys = ('UnitPos', 'LongType', 'LongTable', 'LongMatID', 'LongGoodsID')
         dic = []
         res = self.ln.long_list(tpp)

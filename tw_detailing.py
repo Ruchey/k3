@@ -31,7 +31,6 @@ class Report:
         self.pn = k3r.panel.Panel(db)
         self.ln = k3r.long.Long(db)
         self.pr = k3r.prof.Profile(db)
-        self.bs = k3r.base.Base(db)
         self.xl = k3r.xl.Doc()
         self.row = 1
         self.RUB = self.xl.F_RUB
@@ -65,7 +64,7 @@ class Report:
                            nf=('@', '@', '@', '@', '@', '0.0', self.RUB, self.RUB))
         self.xl.ws.merge_cells('A{0}:D{0}'.format(row))
 
-    def header(self, cs=(4, 47, 5, 5, 6.71, 5.3, 10, 10), pg=1):
+    def header(self, cs=(4.57, 47, 5, 5, 6.71, 5.3, 10, 10), pg=1):
         to = self.bs.torderinfo()
         number = to.ordernumber
         name = to.ordername if to.ordername else ''
@@ -125,7 +124,8 @@ class Report:
             cnt = telems.count
             pans = Pans(cpos, name, length, width, cnt)
             l_pans.append(pans)
-        new_list = k3r.utils.group_by_key(l_pans, 'cpos', 'cnt')
+        # new_list = k3r.utils.group_by_key(l_pans, 'cpos', 'cnt')
+        new_list = k3r.utils.group_by_keys(l_pans, ['length', 'width'], 'cnt', 'cpos')
         return new_list
 
     def det_tab_sheets(self, tpp=None):
