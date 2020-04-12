@@ -119,7 +119,7 @@ class Report:
                             band_x2, band_y1, band_y2, cpos, note
                             )
                 listPan.append(pans)
-        newlist = k3r.utils.group_by_key(listPan, 'cpos', 'cnt')
+        newlist = k3r.utils.sum_by_key(listPan, 'cpos', 'cnt')
         return newlist
 
     def rep_pan(self, name, mat, tpp=None):
@@ -129,7 +129,7 @@ class Report:
         rowstart = row
 
         for imat in mat:
-            mt, bands = self.totalmat(imat.id, tpp)
+            mt, bands = self.totalmat(imat.priceid, tpp)
             if mt:
                 val = (mt.name, "", "", mt.unit, mt.cnt)
                 row = self.xl.put_val(row, 2, val)
@@ -167,7 +167,7 @@ class Report:
         self.xl.formatting(row1, 1, ha='c', va='cccccccccccc')
         self.xl.formatting(row1, 3, r=[90, ])
         for imat in mat:
-            pans = self.list_pan(imat.id, tpp)
+            pans = self.list_pan(imat.priceid, tpp)
             rang = 'A{0}:L{0}'.format(row)
             self.xl.style_to_range(rang, 'Заголовок 1')
             self.xl.ws.merge_cells(rang)

@@ -13,9 +13,9 @@ class Profile:
     def profiles(self, tpp=None):
         """Возвращает список именованных кортежей профилей.
         Не включает профиля длиномеров
-        unitpos, length, colorid, formtype, priceid
+        priceid, len, formtype, cnt
         """
-        keys = ('priceid', 'length', 'formtype', 'cnt')
+        keys = ('priceid', 'len', 'formtype', 'cnt')
         filter_tpp = " AND te.TopParentPos={}".format(tpp)
         if tpp is None:
             filter_tpp = ""
@@ -34,10 +34,10 @@ class Profile:
 
     def total(self, tpp=None):
         """Возвращает общее количество профилей
-        priceid, length, colorid, formtype
+        priceid, len
         thick - толщина пилы прибавляемая к каждому отрезку
         """
-        keys = ('priceid', 'length')
+        keys = ('priceid', 'len')
         filter_tpp = " AND te.TopParentPos={}".format(tpp)
         if tpp is None:
             filter_tpp = ""

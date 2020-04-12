@@ -124,7 +124,6 @@ class Report:
             cnt = telems.count
             pans = Pans(cpos, name, length, width, cnt)
             l_pans.append(pans)
-        # new_list = k3r.utils.group_by_key(l_pans, 'cpos', 'cnt')
         new_list = k3r.utils.group_by_keys(l_pans, ['length', 'width'], 'cnt', 'cpos')
         return new_list
 
@@ -143,7 +142,7 @@ class Report:
             mats.append(prop)
         mats.sort(key=lambda x: x.thickness, reverse=True)
         for mat in mats:
-            pans = self.get_pans(self.pn.list_panels(mat.id, tpp))
+            pans = self.get_pans(self.pn.list_panels(mat.priceid, tpp))
             pic = getattr(mat, 'picturefile', '')
             if pic:
                 pic = os.path.join(pic_dir, pic[1:])
@@ -315,7 +314,7 @@ class Report:
         end_row = self.row + len(bands) - 1
         self.xl.style_to_range('A{0}:H{1}'.format(self.row, end_row), 'Таблица 1')
         for b in bands:
-            prop = self.nm.properties(b.id)
+            prop = self.nm.properties(b.priceid)
             wc = prop.wastecoeff
             len_wc = '=D{0}*E{0}'.format(self.row)
             val = (prop.name, '', b.thick, b.length, wc, len_wc, prop.price, self.cost())

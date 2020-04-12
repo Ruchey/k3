@@ -117,7 +117,7 @@ def newsheet(name):
     xl.topmargin = 1.6
     xl.centerhorizontally = 0
     xl.displayzeros = False
-    xl.newsheet(name)
+    xl.new_sheet(name)
     return
 
 

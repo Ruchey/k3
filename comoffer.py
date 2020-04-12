@@ -28,7 +28,7 @@ def detali(namesheet, data=None, tabcolor=1):
     xl.bottommargin = 1.6
     xl.topmargin = 1.6
     xl.centerhorizontally = 0
-    xl.newsheet(namesheet, tabcolor)
+    xl.new_sheet(namesheet, tabcolor)
     DetTab = [2.4,50,5,5,5,6,10,10]
     xl.columnsize(1, DetTab)
     nm = Nomenclature(db)
@@ -208,7 +208,7 @@ def kompred(xlDic, tabcolor=1):
     xl.bottommargin = 1.6
     xl.topmargin = 1.6
     xl.centerhorizontally = 0
-    xl.newsheet(" œ", tabcolor)
+    xl.new_sheet(" œ", tabcolor)
     DetTab = [6.5,21,35.6,10,6.57,11,44,11,6]
     xl.columnsize(1, DetTab)
     rw = 1

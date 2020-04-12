@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 import os
 import k3r
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
 
 
 DSP = [128]
@@ -22,7 +20,7 @@ class Doc:
         self.xl = k3r.xl.Doc()
         self.row = 1
 
-    def newsheet(self, name):
+    def new_sheet(self, name):
         """Создаём новый лист с именем"""
 
         self.xl.sheet_orient = self.xl.PORTRAIT
@@ -43,12 +41,13 @@ class Doc:
         self.xl.style_to_range('A{0}:L{0}'.format(row), style)
 
     def det_heading(self, row):
-        val = ('№', 'Наименование', 'Д-на', 'Ш-на', 'Кр. X', '', 'Кр. Y', '', 'Паз', 'Торец', 'Чер.', 'шт')
+        val = ('№', 'Наименование', 'Д-на (X)', 'Ш-на (Y)', 'Кром. X1 X2', '', 'Кром. Y1 Y2', '',
+               'Паз X-отст. Y-отст.', 'Торец', 'Чер.', 'шт')
         self.xl.put_val(row, 1, val)
         self.xl.ws.merge_cells('E{0}:F{0}'.format(row))
         self.xl.ws.merge_cells('G{0}:H{0}'.format(row))
         self.xl.style_to_range('A{0}:L{0}'.format(row), 'Заголовок 3')
-        self.xl.formatting(self.row, 1, ha='cccccccccccc', va='c')
+        self.xl.formatting(self.row, 1, ha='cccccccccccc', va='c', wrap='t')
         self.row += 1
 
     def get_pans(self, pans, tpp=None):
@@ -61,10 +60,16 @@ class Doc:
             pdir = self.pn.dir(id_pan)
             p_cpos = telems.commonpos
             name = telems.name
-            name += '(Г)' if self.pn.form(id_pan) > 0 else ''
-            p_name = name
             p_length = self.pn.length(id_pan)
             p_width = self.pn.width(id_pan)
+            if self.pn.form(id_pan) > 0:
+                par_bent = self.pn.par_bent_pan(id_pan)
+                ax = par_bent.ax
+                width = p_width if ax == 1 else p_length
+                name += ' R{0} (разв. {1})'.format(par_bent.rad, round(width))
+                p_width = par_bent.chord
+                p_length = par_bent.h
+            p_name = name
             p_cnt = telems.count
             slot_x = list(map('{0.beg}ш{0.width}г{0.depth}'.format,
                               self.pn.slots_x_par(id_pan)))
@@ -72,8 +77,8 @@ class Doc:
                               self.pn.slots_y_par(id_pan)))
             if (45 < pdir <= 135) or (225 < pdir <= 315):
                 slot_x, slot_y = slot_y, slot_x
-            note_slot_x = "X={0}".format("; ".join(slot_x)) if slot_x else ""
-            note_slot_y = "Y={0}".format("; ".join(slot_y)) if slot_y else ""
+            note_slot_x = "X_{0}".format("; ".join(slot_x)) if slot_x else ""
+            note_slot_y = "Y_{0}".format("; ".join(slot_y)) if slot_y else ""
             p_slots = ' '.join([note_slot_x, note_slot_y])
             butts = self.pn.butts_is(id_pan)
             p_butts = 'Т' if butts else ''
@@ -89,15 +94,15 @@ class Doc:
             p_band_y2 = bands_abc.get(band_y2.name, '')
             dec_a = self.pn.decorates(id_pan, 5)
             dec_f = self.pn.decorates(id_pan, 6)
-            decor = ' '.join([dec_a, dec_f])
+            decor = ' '.join([dec_a, dec_f]).strip()
             p_decor = decor
             mill = self.pn.milling(id_pan)
             p_mill = mill
             pans = Pans(p_cpos, p_name, p_length, p_width, p_cnt, p_slots, p_butts, p_draw,
                         p_band_x1, p_band_x2, p_band_y1, p_band_y2, p_decor, p_mill)
             l_pans.append(pans)
-        new_list = k3r.utils.group_by_keys(l_pans, ['length', 'width', 'cnt', 'slots', 'butts', 'draw', 'band_x1',
-                                                    'band_x2', 'band_y1', 'band_y2', 'decor', 'mill'], 'cnt', 'cpos')
+        new_list = k3r.utils.group_by_keys(l_pans, ('length', 'width', 'cnt', 'slots', 'butts', 'draw', 'band_x1',
+                                                    'band_x2', 'band_y1', 'band_y2', 'decor', 'mill'), 'cnt', 'cpos')
         new_list.sort(key=lambda x: (x.length, x.width), reverse=True)
         return new_list
 
@@ -109,7 +114,6 @@ class Product:
     def __init__(self, doc):
         self.doc = doc
         self.tpp = None
-        self.doc.row = 1
 
     def make(self, tpp):
         self.tpp = tpp
@@ -117,13 +121,14 @@ class Product:
         cnt = '-- {}шт'.format(te.count)
         gab = 'в{0} ш{1} г{2}'.format(int(te.zunit), int(te.xunit), int(te.yunit))
         name = ' '.join([te.name, gab, cnt])
-        self.doc.newsheet('Изд_{}'.format(self.tpp))
+        self.doc.new_sheet('Изд_{}'.format(self.tpp))
         cs = [4.86, 33, 7, 7, 2.71, 2.71, 2.71, 2.71, 10.14, 6, 6, 4.29]
         self.doc.xl.col_size(1, cs)
         self.doc.put_val(name)
         self.doc.xl.ws.merge_cells('A{0}:L{0}'.format(self.doc.row - 1))
         self.doc.xl.formatting(self.doc.row - 1, 1, ha='l', va='c', b='t', wrap='f', sz=14)
         self.sheets()
+        self.doc.row = 1
 
     def sheets(self):
         """Таблица листовых материалов"""
@@ -153,17 +158,19 @@ class Product:
         style = ['Заголовок 62', 'Заголовок 52']
         for idx, mat_gr in enumerate([dsp, mdf]):
             for mat in mat_gr:
-                l_pans = self.doc.pn.list_panels(mat.id, self.tpp)
+                l_pans = self.doc.pn.list_panels(mat.priceid, self.tpp)
                 for i, val in enumerate(l_pans):
                     is_door = self.doc.bs.get_anc_furntype(val, '50')
-                    if is_door:
+                    dec_a = self.doc.pn.decorates(val, 5)
+                    dec_f = self.doc.pn.decorates(val, 6)
+                    if is_door or dec_a or dec_f:
                         lst_for_del.append(val)
                         is_frame = self.doc.bs.get_anc_furntype(val, '62')
                         if not is_frame:
-                            if mat.id in fcd.keys():
-                                fcd[mat.id].append(val)
+                            if mat.priceid in fcd.keys():
+                                fcd[mat.priceid].append(val)
                             else:
-                                fcd.update({mat.id: [val]})
+                                fcd.update({mat.priceid: [val]})
                 if lst_for_del:
                     for del_el in lst_for_del:
                         l_pans.remove(del_el)
@@ -185,7 +192,7 @@ class Product:
         style = ['Заголовок 32', 'Заголовок 42', 'Заголовок 42']
         for idx, mat_gr in enumerate([hdf, gls, rest]):
             for mat in mat_gr:
-                l_pans = self.doc.pn.list_panels(mat.id, self.tpp)
+                l_pans = self.doc.pn.list_panels(mat.priceid, self.tpp)
                 pans = self.doc.get_pans(l_pans)
                 self.doc.section_heading(self.doc.row, mat.name, style[idx])
                 self.doc.xl.style_to_range('A{0}:L{1}'.format(self.doc.row, self.doc.row + len(pans) - 1), 'Таблица 1')
@@ -203,14 +210,16 @@ class Product:
                 mat = self.doc.nm.properties(i)
                 l_pans = fcd[i]
                 pans = self.doc.get_pans(l_pans)
-                self.doc.section_heading(self.doc.row, mat.name, 'Заголовок 42')
-                self.doc.xl.style_to_range('A{0}:L{1}'.format(self.doc.row, self.doc.row + len(pans) - 1), 'Таблица 1')
-                for p in pans:
-                    name = ' '.join([p.name, p.decor, p.mill])
-                    val = (p.cpos, name, p.length, p.width, p.band_x1, p.band_x2, p.band_y1, p.band_y2,
-                           p.slots, p.butts, p.draw, p.cnt)
-                    self.doc.put_val(val)
-                    self.doc.xl.formatting(self.doc.row - 1, 1, ha='llrrcccccccc', va='c', wrap='fffffffftf')
+                gr_pans = k3r.utils.group_by_keys(pans, ('decor', 'mill'))
+                for gr in gr_pans:
+                    name = ' '.join([mat.name, gr[0].decor, gr[0].mill])
+                    self.doc.section_heading(self.doc.row, name, 'Заголовок 42')
+                    self.doc.xl.style_to_range('A{0}:L{1}'.format(self.doc.row, self.doc.row + len(gr) - 1), 'Таблица 1')
+                    for p in gr:
+                        val = (p.cpos, p.name, p.length, p.width, p.band_x1, p.band_x2, p.band_y1, p.band_y2,
+                               p.slots, p.butts, p.draw, p.cnt)
+                        self.doc.put_val(val)
+                        self.doc.xl.formatting(self.doc.row - 1, 1, ha='llrrcccccccc', va='c', wrap='fffffffftf')
             self.doc.xl.row_size(self.doc.row, tb_space)
             self.doc.row += 1
         facades = self.doc.bs.get_child_furntype(self.tpp, '50')
@@ -250,7 +259,7 @@ class Detailing:
         self.doc.row = 1
 
     def make(self):
-        self.doc.newsheet('Деталировка')
+        self.doc.new_sheet('Деталировка')
         cs = [4.86, 33, 7, 7, 2.71, 2.71, 2.71, 2.71, 10.14, 6, 6, 4.29]
         self.doc.xl.col_size(1, cs)
         self.detailing()
@@ -267,8 +276,8 @@ class Report:
     def make(self):
         prod = Product(self.doc)
         objects = self.doc.bs.tobjects()
-        # for obj in objects:
-        #     prod.make(obj.unitpos)
+        for obj in objects:
+            prod.make(obj.unitpos)
         det = Detailing(self.doc)
         det.make()
 
@@ -276,15 +285,13 @@ class Report:
         self.doc.xl.save(file)
 
 
-def start(fileDB, projreppath, project):
+def start(file_db, pr_path, name):
     # Подключаемся к базе выгрузки
-    db = k3r.db.DB()
-    db.open(fileDB)
-
+    db = k3r.db.DB(file_db)
     rep = Report(db)
     rep.make()
     db.close()
-    file = os.path.join(projreppath, '{}.xlsx'.format(project))
+    file = os.path.join(pr_path, '{}.xlsx'.format(name))
     rep.save(file)
     os.startfile(file)
     return True
@@ -292,6 +299,6 @@ def start(fileDB, projreppath, project):
 
 if __name__ == '__main__':
     fileDB = r'd:\К3\Самара\Самара черновик\2\2.mdb'
-    projreppath = r'd:\К3\Самара\Самара черновик\2\Reports'
-    project = "Общий отчёт"
-    start(fileDB, projreppath, project)
+    pr_rep_path = r'd:\К3\Самара\Самара черновик\2\Reports'
+    rep_name = "Общий отчёт"
+    start(fileDB, pr_rep_path, rep_name)

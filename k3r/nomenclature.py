@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from . import utils
 from collections import namedtuple
 from functools import lru_cache
+from . import utils
 
 __author__ = 'Виноградов А.Г. г.Белгород  август 2015'
 
@@ -17,22 +17,34 @@ class Nomenclature:
     @lru_cache(maxsize=6)
     def acc_by_uid(self, uid=None, tpp=None):
         """Выводит список аксессуаров
-        uid = id единицы измерения
+        uid - int|list id единицы измерения (список)
         tpp = TopParentPos ID верхнего хозяина аксессуара
         Вывод: id, name, article, unitsname, cnt, price, priceid
         """
-        filter_uid = "AND tnn.UnitsID={}".format(uid) if uid else ""
+        if uid:
+            if uid not in (list, tuple):
+                uid = (uid,)
+            filter_uid = "AND tnn.UnitsID in {}".format(uid)
+        else:
+            filter_uid = ""
         filter_tpp = "AND te.TopParentPos={}".format(tpp) if tpp else ""
         where = " ".join(["tnn.UnitsID<>11", filter_uid, filter_tpp])
-        keys = ('id', 'name', 'article', 'unitsid', 'unitsname', 'cnt', 'price', 'priceid')
+        keys = ('id', 'cnt')
 
-        sql = "SELECT ID, [Name], Article, UnitsID, UnitsName, Sum(Cnt/IIf(UnitsID=10,accCnt,1)), Price, PriceID " \
-              "FROM (SELECT tnn.ID, tnn.Name, tnn.Article, tnn.UnitsID, tnn.UnitsName, (te.Count) AS Cnt" \
-              ", tnn.Price, te.PriceID, (Select (Max(ta1.AccType)-Min(ta1.AccType))+1 from TAccessories AS ta1 " \
-              "where ta1.AccMatID=ta.AccMatID) AS accCnt FROM (TAccessories AS ta LEFT JOIN TNNomenclature AS tnn " \
-              "ON ta.AccMatID = tnn.ID) LEFT JOIN TElems AS te ON ta.UnitPos = te.UnitPos WHERE {0}) " \
-              "GROUP BY ID, [Name], Article, UnitsID, UnitsName, Price, PriceID ORDER BY [Name]".format(where)
+        sql = "SELECT tnn.ID, SUM(te.Count) AS cnt FROM (TNNomenclature AS tnn RIGHT JOIN TAccessories AS ta " \
+              "ON tnn.ID = ta.AccMatID) LEFT JOIN TElems AS te ON ta.UnitPos = te.UnitPos " \
+              "WHERE {0} GROUP BY ID".format(where)
+        sql2 = "SELECT ta.AccMatID, Count(ta.AccCount) FROM " \
+               "(SELECT DISTINCT ta.AccMatID, ta.AccCount FROM (TNNomenclature AS tnn RIGHT JOIN TAccessories AS ta " \
+               "ON tnn.ID = ta.AccMatID) LEFT JOIN TElems AS te ON ta.UnitPos = te.UnitPos " \
+               "WHERE {} ) GROUP BY AccMatID".format(where)
         res = self.db.rs(sql)
+        res2 = self.db.rs(sql2)
+        if res and res2:
+            res2 = dict(res2)
+            for i, val in enumerate(res):
+                cnt = val[1] / res2[val[0]]
+                res[i] = (val[0], cnt)
         l_res = []
         for i in res:
             Ac = namedtuple('Ac', keys)
@@ -43,11 +55,14 @@ class Nomenclature:
         """Список погонажных комплектующих, таких как сетки
            tpp = TopParentPos ID верхнего хозяина аксессуара
            ID, Название, артикль, ед.изм., длина, кол-во, цена
-           Вывод: id, name, article, unitsname, length, cnt, price, priceid
+           Вывод:
+            id - из номенклатуры
+            len - длина в метрах
+            cnt - количество
         """
         filter_tpp = ('WHERE te.TopParentPos={}'.format(tpp) if tpp else '')
-        keys = ('id', 'name', 'article', 'unitsname', 'length', 'cnt', 'price', 'priceid')
-        sql = "SELECT tnn.ID, tnn.Name, tnn.Article, tnn.UnitsName, te.XUnit/1000, te.Count, tnn.Price, te.PriceID " \
+        keys = ('id', 'len', 'cnt')
+        sql = "SELECT tnn.ID, te.XUnit/1000, te.Count " \
               "FROM TElems AS te INNER JOIN TNNomenclature AS tnn ON te.PriceID = tnn.ID " \
               "WHERE te.FurnType Like '07%' {0} ORDER BY te.Name".format(filter_tpp)
         res = self.db.rs(sql)
@@ -55,6 +70,7 @@ class Nomenclature:
         for i in res:
             Ac = namedtuple('Ac', keys)
             l_res.append(Ac(*i))
+        l_res = utils.group_by_keys(l_res, ('id', 'len'), 'cnt')
         return l_res
 
     def mat_by_uid(self, uid=2, tpp=None):
@@ -88,7 +104,7 @@ class Nomenclature:
         properties.mattypeid
         properties.
         """
-        keys = ('id', 'name', 'article', 'unitsid', 'unitsname', 'price', 'mattypeid')
+        keys = ('priceid', 'name', 'article', 'unitsid', 'unitsname', 'price', 'mattypeid')
         frm = "TNProperties AS tnp INNER JOIN TNPropertyValues AS tnpv ON tnp.ID = tnpv.PropertyID"
         sql1 = "SELECT LCase(tnp.Ident), tnpv.DValue FROM {0} WHERE (tnp.TypeID in (1,7) " \
                "AND tnpv.EntityID={1})".format(frm, mat_id)
@@ -108,9 +124,9 @@ class Nomenclature:
         if res:
             res_keys = dict(res).keys()
             if 'wastecoeff' not in res_keys:
-                res.append(('wastecoeff', 1))
+                res.append(('wastecoeff', None))
             if 'pricecoeff' not in res_keys:
-                res.append(('pricecoeff', 1))
+                res.append(('pricecoeff', None))
             Prop = namedtuple('Prop', [x[0] for x in res])
             return Prop(**dict(res))
         else:
@@ -122,8 +138,8 @@ class Nomenclature:
            mat_id - номер материала
            prop - имя свойства
         """
-        keys = ('ID', 'Name', 'MatTypeID', 'MatTypeName', 'GroupID', 'GroupName', 'KindID',
-                'KindName', 'Article', 'UnitsID', 'UnitsName', 'Price', 'ParentID', 'GLevel')
+        keys = ('id', 'name', 'mattypeid', 'mattypename', 'groupid', 'groupname', 'kindid',
+                'kindname', 'article', 'unitsid', 'unitsname', 'price', 'parentid', 'glevel')
         sql1 = "SELECT Switch([tnp].[TypeID]=1,[tnpv].[DValue],[tnp].[TypeID]=3,[tnpv].[IValue]," \
                "[tnp].[TypeID]=5,[tnpv].[SValue],[tnp].[TypeID]=6,[tnpv].[IValue],[tnp].[TypeID]=7,[tnpv].[DValue]," \
                "[tnp].[TypeID]=11,[tnpv].[IValue],[tnp].[TypeID]=12,[tnpv].[SValue],[tnp].[TypeID]=13,[tnpv].[SValue]," \
@@ -177,12 +193,12 @@ class Nomenclature:
            add - добавочная длина кромки в мм на торец для отходов
            tpp - ID хозяина кромки
            Выходные данные:
-           id - ID материала
-           length - длина
+           priceid - ID материала
+           len - длина
            thick - толщина торца
         """
         filter_tpp = ("WHERE te.TopParentPos={}".format(tpp) if tpp else '')
-        keys = ('length', 'thick', 'id')
+        keys = ('len', 'thick', 'priceid')
         sql = "SELECT Round(Sum((tb.Length+{0})*(te.Count))/10^3, 2), tb.Width, te.PriceID " \
               "FROM TBands AS tb INNER JOIN TElems AS te ON tb.UnitPos = te.UnitPos {1} " \
               "GROUP BY tb.Width, te.PriceID".format(add, filter_tpp)

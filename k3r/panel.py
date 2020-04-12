@@ -379,12 +379,12 @@ class Panel:
         """Возвращает именованный кортеж
         chord - хорда по концам панели
         rad - радиус панели
-        axis - ось гиба OX - 1 или OY - 2
+        h - высота панели поперёк гнутья
+        ax - ось гиба OX - 1 или OY - 2
         """
-        Rad = namedtuple('Rad', 'rad chord axis')
+        Rad = namedtuple('Rad', 'rad chord h ax')
         radius = 0
         chord = 0
-        axis = 0  # ось гиба: 1 - OX 2 - OY
         form = self.form(unitpos)  # узнаём форму панели
 
         if form == 1:  # дуга по хорде
@@ -415,10 +415,12 @@ class Panel:
             left = d
             right = e
             arc_len = width
+            h = length + b + c
             if axis == 2:
                 left = b
                 right = c
                 arc_len = length
+                h = width + d + e
             min_side = min(left, right)
             max_side = max(left, right)
             l = chord_0 / 2
@@ -434,9 +436,10 @@ class Panel:
         if form == 2:  # Два отрезка и дуга
             sql = "SELECT abs(tpm1.NumValue) AS L1, tpm2.NumValue AS L2, tpm3.NumValue AS R, tpm4.NumValue AS axis, " \
                   "tpm5.NumValue AS b, tpm6.NumValue AS c, tpm7.NumValue AS d, tpm8.NumValue AS e, " \
-                  "tpm9.NumValue AS Ang FROM TParams AS tpm1, TParams AS tpm2, " \
-                  "TParams AS tpm3, TParams AS tpm4, TParams AS tpm5, TParams AS tpm6, TParams AS tpm7, " \
-                  "TParams AS tpm8, TParams AS tpm9 WHERE " \
+                  "tpm9.NumValue AS Ang, tpm10.NumValue AS Length, tpm11.NumValue AS Width " \
+                  "FROM TParams AS tpm1, TParams AS tpm2, TParams AS tpm3, TParams AS tpm4, TParams AS tpm5, " \
+                  "TParams AS tpm6, TParams AS tpm7, TParams AS tpm8, TParams AS tpm9, " \
+                  "TParams AS tpm10, TParams AS tpm11 WHERE " \
                   "tpm1.UnitPos={0} AND tpm1.ParamName='LinesArc.L1' " \
                   "AND tpm2.UnitPos={0} AND tpm2.ParamName='LinesArc.L2' " \
                   "AND tpm3.UnitPos={0} AND tpm3.ParamName='LinesArc.R' " \
@@ -445,7 +448,9 @@ class Panel:
                   "AND tpm6.UnitPos={0} AND (tpm6.ParamName='ShavSide' AND tpm6.Hold3=1) " \
                   "AND tpm7.UnitPos={0} AND (tpm7.ParamName='ShavSide' AND tpm7.Hold3=0) " \
                   "AND tpm8.UnitPos={0} AND (tpm8.ParamName='ShavSide' AND tpm8.Hold3=2) " \
-                  "AND tpm9.UnitPos={0} AND tpm9.ParamName='LinesArc.A'".format(unitpos)
+                  "AND tpm9.UnitPos={0} AND tpm9.ParamName='LinesArc.A' " \
+                  "AND tpm10.UnitPos={0} AND tpm10.ParamName='Length' " \
+                  "AND tpm11.UnitPos={0} AND tpm11.ParamName='Width'".format(unitpos)
 
             res = self.db.rs(sql)
             len_1 = res[0][0]
@@ -457,21 +462,26 @@ class Panel:
             d = -res[0][6]
             e = -res[0][7]
             ang = math.radians(res[0][8])
+            length = res[0][9]
+            width = res[0][10]
             left = d
             right = e
+            h = length + b + c
             if axis == 2:
                 left = b
                 right = c
+                h = width + d + e
             side_1 = len_1 + left
             side_2 = len_2 + right
             chord = math.sqrt(side_1**2 + side_2**2 - 2 * side_1 * side_2 * math.cos(ang))
 
         chord = round(chord)
         radius = abs(round(radius))
-        axis = int(axis)
-        return Rad(radius, chord, axis)
+        h = round(h, 1)
+        ax = int(axis)
+        return Rad(radius, chord, h, ax)
 
-    @lru_cache(maxsize=6)
+    @lru_cache(maxsize=20)
     def band_side(self, unitpos, IDLine, IDPoly=1):
         """информация о кромке торца
         id - id кромки из номенклатуры
@@ -640,7 +650,7 @@ class Panel:
         dec = []
         for i in res:
             dec.append(i[2])
-        return ' '.join(dec)
+        return ' '.join(dec).strip()
 
     def cnt_drill_pans(self, tpp=None, hingoff=False):
         """Получить кол-во просверленных деталей. Сверловка с двух сторон считается, как две детали

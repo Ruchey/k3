@@ -3,6 +3,7 @@
 
 from collections import namedtuple
 from functools import lru_cache
+from . import utils
 
 __author__ = 'Виноградов А.Г. г.Белгород  август 2015'
 
@@ -39,7 +40,7 @@ class Long:
         Входные данные:
         lt - LongType тип длиномера
         tpp - TopParentPos хозяин
-        Вывод: 'unitpos', 'type', 'table', 'matid', 'goodsid', 'length', 'width', 'depth', 'cnt', 'form'
+        Вывод: 'type', 'priceid', 'length', 'width', 'height', 'cnt', 'form
         Типы длиномеров:
             0	Столешница
             1	Карниз
@@ -50,11 +51,12 @@ class Long:
             6	Нижний профиль
             7	Балюстрада
         """
-        keys = ('unitpos', 'type', 'table', 'matid', 'goodsid', 'length', 'width', 'height', 'cnt', 'form')
+        keys = ('type', 'priceid', 'length', 'width', 'height', 'cnt', 'form')
+        gr_keys = ('type', 'priceid', 'length', 'width', 'height', 'form')
         filter_lt = "WHERE LongType={}".format(lt) if not lt is None else ""
         pref = " AND" if lt else "WHERE"
         filter_tpp = "{} te.TopParentPos={}".format(pref, tpp) if tpp else ""
-        sql = "SELECT tl.UnitPos, tl.LongType AS lt, tl.LongTable, te.PriceID, tl.LongGoodsID, " \
+        sql = "SELECT tl.UnitPos, tl.LongType AS lt, te.PriceID, " \
               "te.XUnit, te.YUnit, te.ZUnit, te.Count FROM TLongs AS tl INNER JOIN TElems AS te " \
               "ON tl.UnitPos = te.UnitPos {} ORDER BY tl.LongType".format(filter_lt + filter_tpp)
         res = self.db.rs(sql)
@@ -62,8 +64,11 @@ class Long:
         for i in res:
             long = namedtuple('Long', keys)
             i += (self.form(i[0]),)
-            d_res.append(long(*i))
-        return d_res
+            i_lst = list(i)
+            i_lst.pop(0)
+            d_res.append(long(*i_lst))
+        gr_lst = utils.group_by_keys(d_res, gr_keys, 'cnt')
+        return gr_lst
 
     @lru_cache(maxsize=6)
     def total(self, lt=None, tpp=None):

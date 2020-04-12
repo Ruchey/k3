@@ -1,10 +1,5 @@
-# -*- coding: utf-8 -*-
-# Вспомогательные функции
-
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 from itertools import groupby
-
-__author__ = 'Виноградов А.Г. г.Белгород июнь 2019'
 
 
 def norm_key_prop(lst):
@@ -32,7 +27,7 @@ def float_int(num):
         return round(num, 1)
 
 
-def group_by_key(iterable, key, sum_field):
+def sum_by_key(iterable, key, sum_field):
     """Группирует список по полю key и суммирует по полю sum_field
     iterable - список именованных кортежей
     key - строка, название общего поля для группировки
@@ -54,10 +49,12 @@ def group_by_key(iterable, key, sum_field):
     return new_list
 
 
-def group_by_keys(iterable, keys, sum_field, stick_field=None):
+def group_by_keys(iterable, keys, sum_field=None, stick_field=None):
     """Группирует список по полю списку ключей key и суммирует по полю sum_field.
     Дополнительное поле stick_field склеивает значения, например по полю cpos - номер детали.
     На выходе получим cpos = '12;34;2'
+    Если поле sum_field не задано, на выходе получим список групп (списков) по схожим заданным ключам.
+    Входные данные:
         iterable -- obj список именованных кортежей
         key -- list названия полей для группировки
         sum_field -- str название поля содержащие кол-во, которое будет суммироваться
@@ -80,13 +77,16 @@ def group_by_keys(iterable, keys, sum_field, stick_field=None):
     for vals in dist_keys:
         kv = list(zip(keys, vals))
         items = [i for i in iterable if all(getattr(i, k) == v for k, v in kv)]
-        cnt = sum(getattr(x, sum_field) for x in items)
-        if stick_field:
-            stick_field_list = list(str(getattr(x, stick_field)) for x in items)
-            stick = ';'.join(OrderedDict.fromkeys(stick_field_list))
-            new_list.append(items[0]._replace(**{sum_field: cnt, stick_field: stick}))
+        if sum_field:
+            cnt = sum(getattr(x, sum_field) for x in items)
+            if stick_field:
+                stick_field_list = list(str(getattr(x, stick_field)) for x in items)
+                stick = ';'.join(OrderedDict.fromkeys(stick_field_list))
+                new_list.append(items[0]._replace(**{sum_field: cnt, stick_field: stick}))
+            else:
+                new_list.append(items[0]._replace(**{sum_field: cnt}))
         else:
-            new_list.append(items[0]._replace(**{sum_field: cnt}))
+            new_list.append(items)
     return new_list
 
 
@@ -100,3 +100,11 @@ def get_tree_parents(unitpos, table):
         return tree
     else:
         return tree
+
+
+def tuple_append(tup, dic, name='NTuple'):
+    """Добавление в именованный кортеж данных из словаря"""
+    tmp = tup._asdict()
+    tmp.update(dic)
+    NTuple = namedtuple(name, dict(tmp).keys())
+    return NTuple(**dict(tmp))
