@@ -2,7 +2,6 @@ import os
 import k3r
 from collections import namedtuple
 
-
 DSP = [128]
 HDF = [37]
 MDF = [64]
@@ -18,9 +17,10 @@ class Doc:
         self.pr = k3r.prof.Profile(db)
         self.bs = k3r.base.Base(db)
         self.xl = k3r.xl.Doc()
+        self.gt = k3r.get_tables.Specific(db)
         self.row = 1
 
-    def new_sheet(self, name):
+    def new_sheet(self, name, tab_color=None):
         """Создаём новый лист с именем"""
 
         self.xl.sheet_orient = self.xl.PORTRAIT
@@ -30,7 +30,36 @@ class Doc:
         self.xl.top_margin = 1.6
         self.xl.center_horizontally = 0
         self.xl.fontsize = 11
-        self.xl.new_sheet(name)
+        self.xl.new_sheet(name, tab_color)
+
+    def cap(self):
+        """Шапка с данными заказа"""
+        to = self.bs.torderinfo()
+        number = to.ordernumber
+        name = to.ordername if to.ordername else ''
+        customer = to.customer if to.customer else ''
+        phone = to.telephonenumber if to.telephonenumber else ''
+        adr = to.address if to.address else ''
+        executor = to.executor if to.executor else ''
+        acceptor = to.acceptor if to.acceptor else ''
+        addinfo = to.additionalinfo if to.additionalinfo else ''
+        data = ''
+        if to.orderexpirationdata.year > 2000:
+            data = to.orderexpirationdata.strftime("%m.%d.%y")
+        val = [
+            ('Заказ №{0}'.format(number)),
+            ('Название: {0}'.format(name)),
+            ('Заказчик: {0} Телефон: {1}'.format(customer, phone)),
+            ('Адрес: {0}'.format(adr)),
+            ('Приёмщик: {0} Исполнитель: {1}'.format(acceptor, executor)),
+            ('Дата исполнения: {}'.format(data)),
+            ('Дополнительно: {}'.format(addinfo))
+        ]
+        for v in val:
+            self.xl.formatting(self.row, 1, sz=12, bld='f', itl='f')
+            self.put_val(v)
+        self.xl.row_size(self.row, 8)
+        self.row += 1
 
     def put_val(self, val):
         self.row = self.xl.put_val(self.row, 1, val)
@@ -111,22 +140,32 @@ class Product:
     """Класс создаёт страницы деталировок по изделиям
     Входная функция make(tpp). tpp - TopParentPos это id изделия
     """
+
     def __init__(self, doc):
         self.doc = doc
+        self.doc.row = 1
         self.tpp = None
 
     def make(self, tpp):
         self.tpp = tpp
+        self.doc.cap()
         te = self.doc.bs.telems(self.tpp)
-        cnt = '-- {}шт'.format(te.count)
-        gab = 'в{0} ш{1} г{2}'.format(int(te.zunit), int(te.xunit), int(te.yunit))
-        name = ' '.join([te.name, gab, cnt])
-        self.doc.new_sheet('Изд_{}'.format(self.tpp))
+        t_obj = self.doc.bs.tobjects(self.tpp)
+        pt = t_obj.placetype
+        sheet_name = 'низ_{}'.format(self.tpp)
+        color = '9FC0E7'
+        if pt == 1:
+            sheet_name = 'верх_{}'.format(self.tpp)
+            color = 'FCDABC'
+        self.doc.new_sheet(sheet_name, tab_color=color)
         cs = [4.86, 33, 7, 7, 2.71, 2.71, 2.71, 2.71, 10.14, 6, 6, 4.29]
         self.doc.xl.col_size(1, cs)
+        gab = 'в{0} ш{1} г{2}'.format(int(te.zunit), int(te.xunit), int(te.yunit))
+        cnt = '-- {}шт'.format(te.count)
+        name = ' '.join([te.name, gab, cnt])
         self.doc.put_val(name)
         self.doc.xl.ws.merge_cells('A{0}:L{0}'.format(self.doc.row - 1))
-        self.doc.xl.formatting(self.doc.row - 1, 1, ha='l', va='c', b='t', wrap='f', sz=14)
+        self.doc.xl.formatting(self.doc.row - 1, 1, ha='c', va='c', wrap='f', sz=14, bld='t')
         self.sheets()
         self.doc.row = 1
 
@@ -214,7 +253,8 @@ class Product:
                 for gr in gr_pans:
                     name = ' '.join([mat.name, gr[0].decor, gr[0].mill])
                     self.doc.section_heading(self.doc.row, name, 'Заголовок 42')
-                    self.doc.xl.style_to_range('A{0}:L{1}'.format(self.doc.row, self.doc.row + len(gr) - 1), 'Таблица 1')
+                    self.doc.xl.style_to_range('A{0}:L{1}'.format(self.doc.row, self.doc.row + len(gr) - 1),
+                                               'Таблица 1')
                     for p in gr:
                         val = (p.cpos, p.name, p.length, p.width, p.band_x1, p.band_x2, p.band_y1, p.band_y2,
                                p.slots, p.butts, p.draw, p.cnt)
@@ -259,14 +299,125 @@ class Detailing:
         self.doc.row = 1
 
     def make(self):
-        self.doc.new_sheet('Деталировка')
+        self.doc.new_sheet('Деталировка', tab_color='595959')
         cs = [4.86, 33, 7, 7, 2.71, 2.71, 2.71, 2.71, 10.14, 6, 6, 4.29]
         self.doc.xl.col_size(1, cs)
         self.detailing()
 
     def detailing(self):
         pr = Product(self.doc)
+        self.doc.cap()
         pr.sheets()
+
+
+class Specification:
+    def __init__(self, doc):
+        self.doc = doc
+        self.doc.row = 1
+        self.tpp = None
+
+    def make(self, tpp=None):
+        self.tpp = tpp
+        self.doc.cap()
+        self.doc.new_sheet('Спецификация', tab_color='FFFF00')
+        cs = [53, 12.71, 12, 6.86, 6]
+        self.doc.xl.col_size(1, cs)
+        self.sheets()
+        self.bends()
+        self.prof()
+        self.acc()
+
+    def header(self, val_1, val_2, tab=None):
+        self.doc.xl.put_val(self.doc.row, 1, val_1[0].upper() + '    ')
+        self.doc.xl.style_to_range('A{0}:E{0}'.format(self.doc.row), val_1[1])
+        self.doc.xl.ws.merge_cells('A{0}:E{0}'.format(self.doc.row))
+        self.doc.xl.formatting(self.doc.row, 1, ha='r', va='c', wrap='f', sz=12, bld='t')
+        self.doc.row += 1
+        self.doc.xl.put_val(self.doc.row, 1, val_2[0])
+        self.doc.xl.style_to_range('A{0}:E{0}'.format(self.doc.row), val_2[1])
+        self.doc.xl.formatting(self.doc.row, 1, ha='ccccc', va='c', wrap='f')
+        self.doc.row += 1
+        if tab:
+            self.doc.xl.style_to_range('A{0}:E{1}'.format(self.doc.row, self.doc.row + tab), 'Таблица 1')
+
+    def sheets(self):
+        sh = self.doc.gt.t_sheets(self.tpp)
+        if not sh:
+            return
+        val_1 = ('Листовой материал', 'Заголовок 32')
+        val_2 = (('Материал панелей', 'Артикул', 'Формат', 'кв.м', 'кг'), 'Заголовок 1')
+        self.header(val_1, val_2, len(sh) - 1)
+        for i in sh:
+            density = getattr(i, 'density', 0)
+            gabx = int(getattr(i, 'gabx', 0))
+            gaby = int(getattr(i, 'gaby', 0))
+            weight = round(i.sqm * density * (i.thickness / 1000), 1)
+            sh_sz = '{0}x{1}x{2}'.format(gabx, gaby, int(i.thickness))
+            val = (i.name, i.article, sh_sz, i.sqm, weight)
+            self.doc.put_val(val)
+            self.doc.xl.formatting(self.doc.row - 1, 1, ha='lrrrr', va='c')
+        self.doc.xl.row_size(self.doc.row, 8)
+        self.doc.row += 1
+
+    def bends(self):
+        bnd = self.doc.gt.t_bands(tpp=self.tpp)
+        if not bnd:
+            return
+        val_1 = ('Кромочный материал', 'Заголовок 42')
+        val_2 = (('Наименование кромочного материала', '', 'Артикул', '', 'п/м'), 'Заголовок 1')
+        self.header(val_1, val_2, len(bnd) - 1)
+        for i in bnd:
+            val = (i.name, i.article, '', '', round(i.len, 1))
+            self.doc.put_val(val)
+            self.doc.xl.ws.merge_cells('B{0}:D{0}'.format(self.doc.row - 1))
+            self.doc.xl.formatting(self.doc.row - 1, 1, ha='lcccr', va='c')
+        self.doc.xl.row_size(self.doc.row, 8)
+        self.doc.row += 1
+
+    def prof(self):
+        pf = self.doc.gt.t_total_prof(tpp=self.tpp)
+        if not pf:
+            return
+        val_1 = ('Профиля', 'Заголовок 52')
+        val_2 = (('Наименование профиля', '', 'Артикул', '', 'п/м'), 'Заголовок 1')
+        self.header(val_1, val_2, len(pf) - 1)
+        for i in pf:
+            val = (i.name, '', i.article, '', round(i.net_len, 1))
+            self.doc.put_val(val)
+            self.doc.xl.ws.merge_cells('A{0}:B{0}'.format(self.doc.row - 1))
+            self.doc.xl.ws.merge_cells('C{0}:D{0}'.format(self.doc.row - 1))
+            self.doc.xl.formatting(self.doc.row - 1, 1, ha='llccr', va='c')
+        self.doc.xl.row_size(self.doc.row, 8)
+        self.doc.row += 1
+
+    def acc(self):
+        ac = self.doc.gt.t_acc(tpp=self.tpp)
+        if not ac:
+            return
+        val_1 = ('Комплектующие', 'Заголовок 62')
+        val_2 = (('Наименование', 'Артикул', 'Поставщик', 'ед.изм', 'кол-во'), 'Заголовок 1')
+        self.header(val_1, val_2, len(ac) - 1)
+        for i in ac:
+            supp = getattr(i, 'supplier', '')
+            val = (i.name, i.article, supp, i.unitsname, i.cnt)
+            self.doc.put_val(val)
+            self.doc.xl.formatting(self.doc.row - 1, 1, ha='lcclr', va='c', wrap='t')
+        ac_long = self.doc.gt.t_acc_long(tpp=self.tpp)
+        if not ac_long:
+            self.doc.xl.row_size(self.doc.row, 8)
+            self.doc.row += 1
+            return
+        for i in ac_long:
+            begin = self.doc.row
+            end = self.doc.row + len(ac_long) - 2
+            self.doc.xl.style_to_range('A{0}:E{1}'.format(begin, end), 'Таблица 1')
+            supp = getattr(i, 'supplier', '')
+            name = '{0} (L={1}мм)'.format(i.name, int(i.len))
+            val = (name, i.article, supp, i.unitsname, i.cnt)
+            self.doc.put_val(val)
+            self.doc.xl.formatting(self.doc.row - 1, 1, ha='lcclr', va='c', wrap='t')
+        self.doc.xl.row_size(self.doc.row, 8)
+        self.doc.row += 1
 
 
 class Report:
@@ -274,12 +425,15 @@ class Report:
         self.doc = Doc(db)
 
     def make(self):
-        prod = Product(self.doc)
-        objects = self.doc.bs.tobjects()
-        for obj in objects:
-            prod.make(obj.unitpos)
         det = Detailing(self.doc)
         det.make()
+        sp = Specification(self.doc)
+        sp.make()
+        prod = Product(self.doc)
+        objects = self.doc.bs.tobjects()
+        objects.sort(key=lambda x: x.placetype)
+        for obj in objects:
+            prod.make(obj.unitpos)
 
     def save(self, file):
         self.doc.xl.save(file)
@@ -298,7 +452,8 @@ def start(file_db, pr_path, name):
 
 
 if __name__ == '__main__':
-    fileDB = r'd:\К3\Самара\Самара черновик\2\2.mdb'
-    pr_rep_path = r'd:\К3\Самара\Самара черновик\2\Reports'
+    nm = 1
+    fileDB = r'd:\К3\Самара\Самара черновик\{0}\{0}.mdb'.format(nm)
+    pr_rep_path = r'd:\К3\Самара\Самара черновик\{}\Reports'.format(nm)
     rep_name = "Общий отчёт"
     start(fileDB, pr_rep_path, rep_name)

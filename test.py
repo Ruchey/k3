@@ -1,7 +1,7 @@
-import os
 from pprint import pprint
+
 import k3r
-import get_tables
+from k3r import get_tables
 
 fl = r'd:\test.xlsx'
 fileDB = r'd:\К3\Самара\Самара черновик\1\1.mdb'

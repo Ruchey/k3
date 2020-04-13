@@ -19,7 +19,8 @@ class Nomenclature:
         """Выводит список аксессуаров
         uid - int|list id единицы измерения (список)
         tpp = TopParentPos ID верхнего хозяина аксессуара
-        Вывод: id, name, article, unitsname, cnt, price, priceid
+        Вывод:
+            priceid, cnt
         """
         if uid:
             if uid not in (list, tuple):
@@ -29,7 +30,7 @@ class Nomenclature:
             filter_uid = ""
         filter_tpp = "AND te.TopParentPos={}".format(tpp) if tpp else ""
         where = " ".join(["tnn.UnitsID<>11", filter_uid, filter_tpp])
-        keys = ('id', 'cnt')
+        keys = ('priceid', 'cnt')
 
         sql = "SELECT tnn.ID, SUM(te.Count) AS cnt FROM (TNNomenclature AS tnn RIGHT JOIN TAccessories AS ta " \
               "ON tnn.ID = ta.AccMatID) LEFT JOIN TElems AS te ON ta.UnitPos = te.UnitPos " \
@@ -56,13 +57,13 @@ class Nomenclature:
            tpp = TopParentPos ID верхнего хозяина аксессуара
            ID, Название, артикль, ед.изм., длина, кол-во, цена
            Вывод:
-            id - из номенклатуры
-            len - длина в метрах
+            priceid - из номенклатуры
+            len - длина в мм
             cnt - количество
         """
         filter_tpp = ('WHERE te.TopParentPos={}'.format(tpp) if tpp else '')
-        keys = ('id', 'len', 'cnt')
-        sql = "SELECT tnn.ID, te.XUnit/1000, te.Count " \
+        keys = ('priceid', 'len', 'cnt')
+        sql = "SELECT tnn.ID, te.XUnit, te.Count " \
               "FROM TElems AS te INNER JOIN TNNomenclature AS tnn ON te.PriceID = tnn.ID " \
               "WHERE te.FurnType Like '07%' {0} ORDER BY te.Name".format(filter_tpp)
         res = self.db.rs(sql)
@@ -70,7 +71,7 @@ class Nomenclature:
         for i in res:
             Ac = namedtuple('Ac', keys)
             l_res.append(Ac(*i))
-        l_res = utils.group_by_keys(l_res, ('id', 'len'), 'cnt')
+        l_res = utils.group_by_keys(l_res, ('priceid', 'len'), 'cnt')
         return l_res
 
     def mat_by_uid(self, uid=2, tpp=None):
