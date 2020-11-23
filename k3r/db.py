@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import pypyodbc
 
-__author__ = 'Виноградов А.Г. г.Белгород  август 2015'
+__author__ = "Виноградов А.Г. г.Белгород  август 2015"
 
 
 class DB:
-    
     def __init__(self, path_db):
         self.conn = pypyodbc.win_connect_mdb(path_db)
         self.cur = self.conn.cursor()

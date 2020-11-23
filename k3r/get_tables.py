@@ -11,7 +11,7 @@ class Specific:
         self.ln = k3r.long.Long(db)
         self.nm = k3r.nomenclature.Nomenclature(db)
         self.pn = k3r.panel.Panel(db)
-        self.pr = k3r.prof.Profile(db)
+        self.pf = k3r.prof.Profile(db)
         self.bs = k3r.base.Base(db)
 
     def t_sheets(self, tpp=None):
@@ -22,14 +22,34 @@ class Specific:
             sqm - количество в кв.м
             ... - набор свойств присущих номенклатурному материалу
         """
-        mat_id = self.nm.mat_by_uid(2, tpp)
+        mat_id = self.nm.mat_by_uid(2, tpp, ex_mtid=(48, 99))
         sh = []
         for i in mat_id:
             prop = self.nm.properties(i)
             sqm = self.nm.sqm(i, tpp)
             obj = k3r.utils.tuple_append(prop, {'sqm': sqm}, 'Sheets')
             sh.append(obj)
-        sh.sort(key=lambda x: [int(x.mattypeid), int(x.thickness)], reverse=True)
+        if sh:
+            sh.sort(key=lambda x: [int(x.mattypeid), int(x.thickness)], reverse=True)
+        return sh
+
+    def t_glass(self, tpp=None):
+        """Таблица стёкло и зеркал
+        Входные данные:
+            tpp - int TopParentPos id объекта (шкафа)
+        Возвращает:
+            sqm - количество в кв.м
+            ... - набор свойств присущих номенклатурному материалу
+        """
+        mat_id = self.nm.mat_by_uid(2, tpp, mattypeid=(48, 99))
+        sh = []
+        for i in mat_id:
+            prop = self.nm.properties(i)
+            sqm = self.nm.sqm(i, tpp)
+            obj = k3r.utils.tuple_append(prop, {'sqm': sqm}, 'Sheets')
+            sh.append(obj)
+        if sh:
+            sh.sort(key=lambda x: [int(x.mattypeid), int(x.thickness)], reverse=True)
         return sh
 
     def t_acc(self, tpp=None, uid=None):
@@ -95,11 +115,13 @@ class Specific:
             formtype - тип формы профиля
             ... - набор свойств присущих номенклатурному материалу
         """
-        pr_list = self.pr.profiles(tpp)
+        pf_list = self.pf.profiles(tpp)
         prof = []
-        for i in pr_list:
+        for i in pf_list:
             prop = self.nm.properties(i.priceid)
-            obj = k3r.utils.tuple_append(prop, {'len': i.len, 'formtype': i.formtype, 'cnt': i.cnt}, 'Prof')
+            notcutpc = getattr(prop, 'notcutpc', 0)
+            obj = k3r.utils.tuple_append(prop, {'len': i.len, 'formtype': i.formtype, 'notcutpc': notcutpc,
+                                                'cnt': i.cnt, 'elemname': i.elemname}, 'Prof')
             prof.append(obj)
         return prof
 
@@ -111,13 +133,14 @@ class Specific:
             net_len - длина в местрах в чистом виде
             ... - набор свойств присущих номенклатурному материалу
         """
-        pr_list = self.pr.total(tpp)
+        pr_list = self.pf.total(tpp)
         prof = []
         for i in pr_list:
             prop = self.nm.properties(i.priceid)
+            notcutpc = getattr(prop, 'notcutpc', 0)
             stepcut = getattr(prop, 'stepcut', 1)
             len = math.ceil(i.len / stepcut) * stepcut
-            obj = k3r.utils.tuple_append(prop, {'len': len, 'net_len': i.len}, 'Prof')
+            obj = k3r.utils.tuple_append(prop, {'len': len, 'net_len': i.len, 'notcutpc': notcutpc}, 'Prof')
             prof.append(obj)
         return prof
 

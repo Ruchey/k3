@@ -19,4 +19,14 @@ __maintainer__ = "Виноградов А.Г."
 __email__ = "lvar-8@ya.ru"
 __status__ = "Development"
 
-__all__ = ['base', 'db', 'xl', 'long', 'nomenclature', 'panel', 'prof.py', 'utils', 'get_tables']
+__all__ = [
+    "base",
+    "db",
+    "xl",
+    "long",
+    "nomenclature",
+    "panel",
+    "prof.py",
+    "utils",
+    "get_tables",
+]

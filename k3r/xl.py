@@ -10,7 +10,7 @@ from openpyxl.drawing.spreadsheet_drawing import OneCellAnchor, AnchorMarker
 from openpyxl.drawing.xdr import XDRPositiveSize2D
 from openpyxl.worksheet.datavalidation import DataValidation as dv
 
-__author__ = 'Виноградов А.Г. г.Белгород  август 2015'
+__author__ = "Виноградов А.Г. г.Белгород  август 2015"
 
 
 def num_to_col(col_number):
@@ -29,10 +29,10 @@ def num_to_col(col_number):
 
 class Doc:
     """Создание документа Excel
-        ExcelDoc - создаёт объект Excel
-        newheet - создаёт страницу в книге с заданным именем
-        save - сохраняет документ в указанное место
-        put_val - добавляет запись в документ
+    ExcelDoc - создаёт объект Excel
+    newheet - создаёт страницу в книге с заданным именем
+    save - сохраняет документ в указанное место
+    put_val - добавляет запись в документ
     """
 
     def __init__(self):
@@ -111,56 +111,219 @@ class Doc:
             'Шапка 1'
         """
         styles = [
-            {'name': 'Заголовок 1', 'sc': 'F2F2F2', 'ec': 'F2F2F2', 'bc': 'D9D9D9', 'b': True, 'horAlign': 'right',
-             'bb': 'thin', 'ft': 'solid'},
-            {'name': 'Заголовок 2', 'sc': 'D9D9D9', 'ec': 'D9D9D9', 'bc': 'BFBFBF', 'b': True, 'horAlign': 'right',
-             'bb': 'thin', 'ft': 'solid'},
-            {'name': 'Заголовок 3', 'sc': '8DB4E2', 'ec': '8DB4E2', 'bc': '16365C', 'b': True, 'horAlign': 'right',
-             'bb': 'thin', 'ft': 'solid'},
-            {'name': 'Заголовок 4', 'sc': 'B8CCE4', 'ec': 'B8CCE4', 'bc': '366092', 'b': True, 'horAlign': 'right',
-             'bb': 'thin', 'ft': 'solid'},
-            {'name': 'Заголовок 5', 'sc': 'E6B8B7', 'ec': 'E6B8B7', 'bc': '963634', 'b': True, 'horAlign': 'right',
-             'bb': 'thin', 'ft': 'solid'},
-            {'name': 'Заголовок 6', 'sc': 'D8E4BC', 'ec': 'D8E4BC', 'bc': '76933C', 'b': True, 'horAlign': 'right',
-             'bb': 'thin', 'ft': 'solid'},
-            {'name': 'Заголовок 7', 'sc': 'CCC0DA', 'ec': 'CCC0DA', 'bc': '60497A', 'b': True, 'horAlign': 'right',
-             'bb': 'thin', 'ft': 'solid'},
-            {'name': 'Заголовок 8', 'sc': 'B7DEE8', 'ec': 'B7DEE8', 'bc': '31869B', 'b': True, 'horAlign': 'right',
-             'bb': 'thin', 'ft': 'solid'},
-            {'name': 'Заголовок 32', 'sc': '8DB4E2', 'ec': '8DB4E2', 'bc': '16365C', 'b': True, 'horAlign': 'right',
-             'bb': 'double', 'bt': 'double', 'ft': 'solid'},
-            {'name': 'Заголовок 42', 'sc': 'B8CCE4', 'ec': 'B8CCE4', 'bc': '366092', 'b': True, 'horAlign': 'right',
-             'bb': 'double', 'bt': 'double', 'ft': 'solid'},
-            {'name': 'Заголовок 52', 'sc': 'E6B8B7', 'ec': 'E6B8B7', 'bc': '963634', 'b': True, 'horAlign': 'right',
-             'bb': 'double', 'bt': 'double', 'ft': 'solid'},
-            {'name': 'Заголовок 62', 'sc': 'D8E4BC', 'ec': 'D8E4BC', 'bc': '76933C', 'b': True, 'horAlign': 'right',
-             'bb': 'double', 'bt': 'double', 'ft': 'solid'},
-            {'name': 'Итоги 1', 'sc': 'FABF8F', 'ec': 'FABF8F', 'bc': 'E26B0A', 'b': True, 'horAlign': 'right',
-             'bb': 'thin', 'bt': 'thick', 'ft': 'solid'},
-            {'name': 'Таблица 1', 'bl': 'thin', 'br': 'thin', 'bt': 'thin', 'bb': 'thin', 'wr': True, 'bc': '808080'},
-            {'name': 'Линейка 1', 'bb': 'thin', 'wr': True, 'bc': '808080'},
-            {'name': 'Шапка 1', 'bl': 'thin', 'br': 'thin', 'bt': 'thin', 'bb': 'thin', 'b': True}
+            {
+                "name": "Заголовок 1",
+                "sc": "F2F2F2",
+                "ec": "F2F2F2",
+                "bc": "D9D9D9",
+                "b": True,
+                "horAlign": "right",
+                "bb": "thin",
+                "ft": "solid",
+            },
+            {
+                "name": "Заголовок 2",
+                "sc": "D9D9D9",
+                "ec": "D9D9D9",
+                "bc": "BFBFBF",
+                "b": True,
+                "horAlign": "right",
+                "bb": "thin",
+                "ft": "solid",
+            },
+            {
+                "name": "Заголовок 3",
+                "sc": "8DB4E2",
+                "ec": "8DB4E2",
+                "bc": "16365C",
+                "b": True,
+                "horAlign": "right",
+                "bb": "thin",
+                "ft": "solid",
+            },
+            {
+                "name": "Заголовок 4",
+                "sc": "B8CCE4",
+                "ec": "B8CCE4",
+                "bc": "366092",
+                "b": True,
+                "horAlign": "right",
+                "bb": "thin",
+                "ft": "solid",
+            },
+            {
+                "name": "Заголовок 5",
+                "sc": "E6B8B7",
+                "ec": "E6B8B7",
+                "bc": "963634",
+                "b": True,
+                "horAlign": "right",
+                "bb": "thin",
+                "ft": "solid",
+            },
+            {
+                "name": "Заголовок 6",
+                "sc": "D8E4BC",
+                "ec": "D8E4BC",
+                "bc": "76933C",
+                "b": True,
+                "horAlign": "right",
+                "bb": "thin",
+                "ft": "solid",
+            },
+            {
+                "name": "Заголовок 7",
+                "sc": "CCC0DA",
+                "ec": "CCC0DA",
+                "bc": "60497A",
+                "b": True,
+                "horAlign": "right",
+                "bb": "thin",
+                "ft": "solid",
+            },
+            {
+                "name": "Заголовок 8",
+                "sc": "B7DEE8",
+                "ec": "B7DEE8",
+                "bc": "31869B",
+                "b": True,
+                "horAlign": "right",
+                "bb": "thin",
+                "ft": "solid",
+            },
+            {
+                "name": "Заголовок 32",
+                "sc": "8DB4E2",
+                "ec": "8DB4E2",
+                "bc": "16365C",
+                "b": True,
+                "horAlign": "right",
+                "bb": "double",
+                "bt": "double",
+                "ft": "solid",
+            },
+            {
+                "name": "Заголовок 42",
+                "sc": "B8CCE4",
+                "ec": "B8CCE4",
+                "bc": "366092",
+                "b": True,
+                "horAlign": "right",
+                "bb": "double",
+                "bt": "double",
+                "ft": "solid",
+            },
+            {
+                "name": "Заголовок 52",
+                "sc": "E6B8B7",
+                "ec": "E6B8B7",
+                "bc": "963634",
+                "b": True,
+                "horAlign": "right",
+                "bb": "double",
+                "bt": "double",
+                "ft": "solid",
+            },
+            {
+                "name": "Заголовок 62",
+                "sc": "D8E4BC",
+                "ec": "D8E4BC",
+                "bc": "76933C",
+                "b": True,
+                "horAlign": "right",
+                "bb": "double",
+                "bt": "double",
+                "ft": "solid",
+            },
+            {
+                "name": "Заголовок 72",
+                "sc": "CCC0DA",
+                "ec": "CCC0DA",
+                "bc": "60497A",
+                "b": True,
+                "horAlign": "right",
+                "bb": "double",
+                "bt": "double",
+                "ft": "solid",
+            },
+            {
+                "name": "Заголовок 82",
+                "sc": "B7DEE8",
+                "ec": "B7DEE8",
+                "bc": "31869B",
+                "b": True,
+                "horAlign": "right",
+                "bb": "double",
+                "bt": "double",
+                "ft": "solid",
+            },
+            {
+                "name": "Итоги 1",
+                "sc": "FABF8F",
+                "ec": "FABF8F",
+                "bc": "E26B0A",
+                "b": True,
+                "horAlign": "right",
+                "bb": "thin",
+                "bt": "thick",
+                "ft": "solid",
+            },
+            {
+                "name": "Таблица 1",
+                "bl": "thin",
+                "br": "thin",
+                "bt": "thin",
+                "bb": "thin",
+                "wr": True,
+                "bc": "808080",
+            },
+            {"name": "Линейка 1", "bb": "thin", "wr": True, "bc": "808080"},
+            {
+                "name": "Шапка 1",
+                "bl": "thin",
+                "br": "thin",
+                "bt": "thin",
+                "bb": "thin",
+                "b": True,
+            },
         ]
 
         for s in styles:
-            font = Font(name=self.font, size=self.fontsize, bold=s.get('b', False), italic=s.get('itl', False),
-                        vertAlign=s.get('vertAlign'), underline='none', strike=False, color=s.get('txtclr', '000000'))
-            fill = PatternFill(fill_type=s.get('ft'), start_color=s.get('sc'), end_color=s.get('ec'))
+            font = Font(
+                name=self.font,
+                size=self.fontsize,
+                bold=s.get("b", False),
+                italic=s.get("itl", False),
+                vertAlign=s.get("vertAlign"),
+                underline="none",
+                strike=False,
+                color=s.get("txtclr", "000000"),
+            )
+            fill = PatternFill(
+                fill_type=s.get("ft"), start_color=s.get("sc"), end_color=s.get("ec")
+            )
 
-            border = Border(left=Side(border_style=s.get('bl'), color=s.get('bc', '000000')),
-                            right=Side(border_style=s.get('br'), color=s.get('bc', '000000')),
-                            top=Side(border_style=s.get('bt'), color=s.get('bc', '000000')),
-                            bottom=Side(border_style=s.get('bb'), color=s.get('bc', '000000')),
-                            diagonal=Side(border_style=None, color=s.get('bc', '000000')),
-                            diagonal_direction=0, outline=Side(border_style=None, color=s.get('bc', '000000')),
-                            vertical=Side(border_style=s.get('bv'), color=s.get('bc', '000000')),
-                            horizontal=Side(border_style=s.get('bh'), color=s.get('bc', '000000'))
-                            )
-            alignment = Alignment(horizontal=s.get('horAlign', 'left'),
-                                  vertical='bottom', text_rotation=0,
-                                  wrap_text=s.get('wr', False), shrink_to_fit=False, indent=0)
+            border = Border(
+                left=Side(border_style=s.get("bl"), color=s.get("bc", "000000")),
+                right=Side(border_style=s.get("br"), color=s.get("bc", "000000")),
+                top=Side(border_style=s.get("bt"), color=s.get("bc", "000000")),
+                bottom=Side(border_style=s.get("bb"), color=s.get("bc", "000000")),
+                diagonal=Side(border_style=None, color=s.get("bc", "000000")),
+                diagonal_direction=0,
+                outline=Side(border_style=None, color=s.get("bc", "000000")),
+                vertical=Side(border_style=s.get("bv"), color=s.get("bc", "000000")),
+                horizontal=Side(border_style=s.get("bh"), color=s.get("bc", "000000")),
+            )
+            alignment = Alignment(
+                horizontal=s.get("horAlign", "left"),
+                vertical="bottom",
+                text_rotation=0,
+                wrap_text=s.get("wr", False),
+                shrink_to_fit=False,
+                indent=0,
+            )
 
-            tab = NamedStyle(name=s['name'])
+            tab = NamedStyle(name=s["name"])
             tab.font = font
             tab.fill = fill
             tab.border = border
@@ -168,7 +331,7 @@ class Doc:
             tab.number_format = None
             self.wb.add_named_style(tab)
 
-    def save(self, pathname='test.xlsx'):
+    def save(self, pathname="test.xlsx"):
         """Сохраняем документ"""
         self.wb.save(pathname)
 
@@ -177,11 +340,11 @@ class Doc:
 
         if type(sz) not in (list, tuple):
             col = num_to_col(clm)
-            self.ws.column_dimensions[col].width = sz + self.margin # 0.7109375
+            self.ws.column_dimensions[col].width = sz + self.margin  # 0.7109375
         else:
             for i, val in enumerate(sz):
                 col = num_to_col(clm + i)
-                self.ws.column_dimensions[col].width = val + self.margin # 0.7109375
+                self.ws.column_dimensions[col].width = val + self.margin  # 0.7109375
 
     def get_col_size(self, col=1, cnt=1):
         """Возвращает ширину колонки или сумму ширин колонок в единицах документа и пикселях (symbols, px)
@@ -191,6 +354,7 @@ class Doc:
         Returns:
             tuple (symbols, px)
         """
+
         def _col_px(width):
             max_digit_width = 7  # For Calabri 11.
             padding = 5
@@ -205,7 +369,7 @@ class Doc:
 
         size = 0
         for i in range(cnt):
-            clm = num_to_col(col+i)
+            clm = num_to_col(col + i)
             sz = self.ws.column_dimensions[clm].width
             if sz is None:
                 sz = self.default_col_width
@@ -231,6 +395,7 @@ class Doc:
         Returns:
             tuple (symbols, px)
         """
+
         def _row_px(height):
             if height is not None:
                 pixels = int(4.0 / 3.0 * height)
@@ -241,7 +406,7 @@ class Doc:
         size = 0
         px = 0
         for i in range(cnt):
-            sz = self.ws.row_dimensions[rw+i].height
+            sz = self.ws.row_dimensions[rw + i].height
             px += _row_px(sz)
             if sz is None:
                 sz = self.default_row_height
@@ -267,7 +432,7 @@ class Doc:
         paper - цвет заливки в формате FFF000
         """
         cells = self.ws[range_cells]
-        filling = PatternFill(fill_type='solid', start_color=fill, end_color=fill)
+        filling = PatternFill(fill_type="solid", start_color=fill, end_color=fill)
         font_color = Font(color=ink)
         if type(cells) is tuple:
             for cell in cells:
@@ -296,17 +461,17 @@ class Doc:
             sz -- list|tuple|int size font Размер шрифта
             itl -- str italic Курсивный шрифт
         """
-        ha = kwargs.get('ha', None)
-        va = kwargs.get('va', None)
-        wrap = kwargs.get('wrap', None)
-        bld = kwargs.get('bld', None)
-        itl = kwargs.get('itl', None)
-        nf = kwargs.get('nf', None)
-        rot = kwargs.get('rot', None)
-        sz = kwargs.get('sz', None)
+        ha = kwargs.get("ha", None)
+        va = kwargs.get("va", None)
+        wrap = kwargs.get("wrap", None)
+        bld = kwargs.get("bld", None)
+        itl = kwargs.get("itl", None)
+        nf = kwargs.get("nf", None)
+        rot = kwargs.get("rot", None)
+        sz = kwargs.get("sz", None)
 
-        align = {'l': 'left', 'r': 'right', 'c': 'center', 't': 'top', 'bld': 'bottom'}
-        ft = {'f': False, 't': True}
+        align = {"l": "left", "r": "right", "c": "center", "t": "top", "bld": "bottom"}
+        ft = {"f": False, "t": True}
         if ha:
             ha = ha.lower()
         if va:
@@ -330,33 +495,50 @@ class Doc:
             w = ft[wrap[min(i, len(wrap) - 1)]] if wrap else None
             b = ft[bld[min(i, len(bld) - 1)]] if bld else self.ws[cells].font.b
             it = ft[itl[min(i, len(itl) - 1)]] if itl else self.ws[cells].font.i
-            r = rot[min(i, len(rot) - 1)] if any(rot) else self.ws[cells].alignment.textRotation
+            r = (
+                rot[min(i, len(rot) - 1)]
+                if any(rot)
+                else self.ws[cells].alignment.textRotation
+            )
             fz = sz[min(i, len(sz) - 1)] if any(sz) else self.ws[cells].font.sz
             n = nf[min(i, len(nf) - 1)] if any(nf) else self.ws[cells].number_format
 
-            self.ws[cells].alignment = Alignment(horizontal=h, vertical=v,
-                                                 text_rotation=r,
-                                                 wrap_text=w)
+            self.ws[cells].alignment = Alignment(
+                horizontal=h, vertical=v, text_rotation=r, wrap_text=w
+            )
             self.ws[cells].font = Font(size=fz, bold=b, italic=it)
             self.ws[cells].number_format = n
 
-    def grid_set(self, wt='xlThin', ls='xlContinuous', tc=2):
+    def grid_set(self, wt="xlThin", ls="xlContinuous", tc=2):
         """Настройка сетки"""
         self.theme_color = tc
         # Weight - толщины линий
-        weight = {'xlThin': 2, 'xlHairline': 1, 'xlThick': 4, 'xlMedium': -4138}
+        weight = {"xlThin": 2, "xlHairline": 1, "xlThick": 4, "xlMedium": -4138}
         self.weight = weight[wt]
         # LineStyle - стиль линий
-        line_style = {'xlContinuous': 1, 'xlDot': -4118, 'xlDash': -4115, 'xlDashDot': 4, 'xlNone': -4142,
-                      'xlDouble': -4119, 'xlSlantDashDot': 13}
+        line_style = {
+            "xlContinuous": 1,
+            "xlDot": -4118,
+            "xlDash": -4115,
+            "xlDashDot": 4,
+            "xlNone": -4142,
+            "xlDouble": -4119,
+            "xlSlantDashDot": 13,
+        }
         self.line_style = line_style[ls]
 
-    def grid(self, rw=0, clm=0, ln=0, hg=0, sd='lrud'):
+    def grid(self, rw=0, clm=0, ln=0, hg=0, sd="lrud"):
         """Отрисовка сетки"""
         # TODO: адаптировать под новый модуль
-        cells = num_to_col(clm) + str(rw) + ":" + num_to_col(clm + abs(ln) - 1) + str(rw + abs(hg) - 1)
+        cells = (
+            num_to_col(clm)
+            + str(rw)
+            + ":"
+            + num_to_col(clm + abs(ln) - 1)
+            + str(rw + abs(hg) - 1)
+        )
         sd = sd.lower()
-        side = {'l': 7, 'u': 8, 'd': 9, 'r': 10, 'v': 11, 'h': 12}
+        side = {"l": 7, "u": 8, "d": 9, "r": 10, "v": 11, "h": 12}
         for i in sd:
             gr = self.wb.ActiveSheet.Range(cells).Borders(side[i])
             gr.LineStyle = self.line_style
@@ -390,14 +572,14 @@ class Doc:
             px -- int количество пикселей зазор до границы
         """
 
-        path = kwargs.get('path', '')
-        cf = kwargs.get('cf', 1)
-        max_col = kwargs.get('max_col', 1)
-        max_row = kwargs.get('max_row', 1)
-        align = kwargs.get('align', 'l')
-        valign = kwargs.get('valign', 't')
-        fit = kwargs.get('fit', True)
-        px = kwargs.get('px', 0)
+        path = kwargs.get("path", "")
+        cf = kwargs.get("cf", 1)
+        max_col = kwargs.get("max_col", 1)
+        max_row = kwargs.get("max_row", 1)
+        align = kwargs.get("align", "l")
+        valign = kwargs.get("valign", "t")
+        fit = kwargs.get("fit", True)
+        px = kwargs.get("px", 0)
 
         if not os.path.exists(path):
             return None
@@ -427,16 +609,18 @@ class Doc:
         vt = px
         vb = d_h - px
         vc = d_h / 2
-        h_align = {'l': hl, 'c': hc, 'r': hr}
-        v_align = {'t': vt, 'c': vc, 'b': vb}
+        h_align = {"l": hl, "c": hc, "r": hr}
+        v_align = {"t": vt, "c": vc, "b": vb}
         row_offset = p2e(v_align[valign])
         col_offset = p2e(h_align[align])
 
-        marker = AnchorMarker(col=col-1, colOff=col_offset, row=rw-1, rowOff=row_offset)
+        marker = AnchorMarker(
+            col=col - 1, colOff=col_offset, row=rw - 1, rowOff=row_offset
+        )
         img.anchor = OneCellAnchor(_from=marker, ext=img_size)
         self.ws.add_image(img)
 
-    def put_val(self, row=1, col=1, value=''):
+    def put_val(self, row=1, col=1, value=""):
         """Запись данных в ячейки
         Аргументы:
             row -- int Строка, начиная с 1
@@ -444,7 +628,7 @@ class Doc:
         """
         if type(value) in (list, tuple):
             for i, val in enumerate(value):
-                self.ws.cell(row, col+i, val)
+                self.ws.cell(row, col + i, val)
         else:
             self.ws.cell(row, col, value)
         return row + 1
@@ -452,19 +636,25 @@ class Doc:
     def print_area(self, rw, clm, ln, hg):
         """Задаёт область печати"""
         # TODO: адаптировать под новый модуль
-        cells = num_to_col(clm) + str(rw) + ":" + num_to_col(clm + abs(ln) - 1) + str(rw + abs(hg) - 1)
+        cells = (
+            num_to_col(clm)
+            + str(rw)
+            + ":"
+            + num_to_col(clm + abs(ln) - 1)
+            + str(rw + abs(hg) - 1)
+        )
         self.wb.ActiveSheet.PageSetup.PrintArea = cells
 
     def format_cond(self, rang, tp, op, f1, f2):
         """Условное форматирование
-           rang - диапозон ("A:C")
-           tp - Type Определяет, основан ли условный формат на значении ячейки или выражении
-           op - Operator Условный оператор формата. Может быть одна из следующих констант XlFormatConditionOperator:
-                xlBetween, xlEqual, xlGreater, xlGreaterEqual, xlLess, xlLessEqual, xlNotBetween, или xlNotEqual.
-                Если Тип - xlExpression, аргумент Оператора проигнорирован
-           f1 - Formula1 Значение или выражение связанное с условным форматированием. Может быть постоянное значение, строковое значение, ссылка на ячейку или формула.
-           f2 - Formula2 Значение или выражение связанное со второй частью условного форматирования, когда Оператор - xlBetween или xlNotBetween (иначе, этот параметр проигнорирован).
-                Может быть постоянное значение, строковое значение, ссылка на ячейку или формула.
+        rang - диапозон ("A:C")
+        tp - Type Определяет, основан ли условный формат на значении ячейки или выражении
+        op - Operator Условный оператор формата. Может быть одна из следующих констант XlFormatConditionOperator:
+             xlBetween, xlEqual, xlGreater, xlGreaterEqual, xlLess, xlLessEqual, xlNotBetween, или xlNotEqual.
+             Если Тип - xlExpression, аргумент Оператора проигнорирован
+        f1 - Formula1 Значение или выражение связанное с условным форматированием. Может быть постоянное значение, строковое значение, ссылка на ячейку или формула.
+        f2 - Formula2 Значение или выражение связанное со второй частью условного форматирования, когда Оператор - xlBetween или xlNotBetween (иначе, этот параметр проигнорирован).
+             Может быть постоянное значение, строковое значение, ссылка на ячейку или формула.
         """
         # TODO: адаптировать под новый модуль
         self.wb.ActiveSheet.Range(rang).FormatConditions.Add(tp, op, f1, f2)

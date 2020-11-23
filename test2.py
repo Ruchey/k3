@@ -24,15 +24,15 @@ def group_by_keys(iterable, keys):
     return new_list
 
 
+kes = ("cpos", "name", "length", "width", "cnt")
+Pans = namedtuple("Pans", kes)
+lp = [
+    Pans(1, "one", 300, 200, 1),
+    Pans(2, "tow", 200, 200, 2),
+    Pans(3, "three", 100, 200, 3),
+    Pans(4, "for", 200, 200, 1),
+    Pans(5, "wer", 200, 200, 2),
+    Pans(6, "fgt", 200, 200, 1),
+]
 
-kes = ('cpos', 'name', 'length', 'width', 'cnt')
-Pans = namedtuple('Pans', kes)
-lp = [Pans(1, 'one', 300, 200, 1),
-      Pans(2, 'tow', 200, 200, 2),
-      Pans(3, 'three', 100, 200, 3),
-      Pans(4, 'for', 200, 200, 1),
-      Pans(5, 'wer', 200, 200, 2),
-      Pans(6, 'fgt', 200, 200, 1)
-      ]
-
-pprint.pprint(group_by_keys(lp, ['width', 'length']))
+pprint.pprint(group_by_keys(lp, ["width", "length"]))

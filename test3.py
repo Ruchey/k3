@@ -8,15 +8,19 @@ wb = Workbook()
 ws = wb.active
 
 # Create a data-validation object with list validation
-dv = DataValidation(type="list", formula1='"корпусном,металлическом,мягкой мебели,столярном"', allow_blank=True)
+dv = DataValidation(
+    type="list",
+    formula1='"корпусном,металлическом,мягкой мебели,столярном"',
+    allow_blank=True,
+)
 
 # Optionally set a custom error message
-dv.error = 'Запись отсутствует в списке'
-dv.errorTitle = 'Ошибочный ввод'
+dv.error = "Запись отсутствует в списке"
+dv.errorTitle = "Ошибочный ввод"
 
 # Optionally set a custom prompt message
-dv.prompt = 'Выберите цех'
-dv.promptTitle = 'Список цехов'
+dv.prompt = "Выберите цех"
+dv.promptTitle = "Список цехов"
 
 # Add the data-validation object to the worksheet
 ws.add_data_validation(dv)
@@ -25,8 +29,5 @@ c1 = ws["A1"]
 c1.value = "Dog"
 dv.add(c1)
 
-wb.save(r'd:\test.xlsx')
-os.startfile(r'd:\test.xlsx')
-
-
-
+wb.save(r"d:\test.xlsx")
+os.startfile(r"d:\test.xlsx")

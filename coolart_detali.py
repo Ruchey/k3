@@ -7,8 +7,7 @@ import k3r
 
 
 class Report:
-
-    def __init__(self, db, phone='', onelist=1):
+    def __init__(self, db, phone="", onelist=1):
 
         self.phone = phone
         self.onelist = onelist
@@ -44,14 +43,14 @@ class Report:
         order_phone = to.telephonenumber  # телефон заказчика
         order_expirationdata = to.orderexpirationdata  # Дата отгрузки
         row = 1
-        val1 = ('Заказчик:', main_customer, '', 'Заказ №', order_number)
-        val2 = ('Телефон:', main_phone, '', 'Заказчик:', order_customer)
-        val3 = ('Дата отгрузки:', order_expirationdata)
-        self.xl.formatting(row, 2, sz=[12], b='tfftf', itl='ftfft')
+        val1 = ("Заказчик:", main_customer, "", "Заказ №", order_number)
+        val2 = ("Телефон:", main_phone, "", "Заказчик:", order_customer)
+        val3 = ("Дата отгрузки:", order_expirationdata)
+        self.xl.formatting(row, 2, sz=[12], b="tfftf", itl="ftfft")
         row = self.xl.put_val(row, 2, val1)
-        self.xl.formatting(row, 2, sz=[12], b='tfftf', itl='ftfft')
+        self.xl.formatting(row, 2, sz=[12], b="tfftf", itl="ftfft")
         row = self.xl.put_val(row, 2, val2)
-        self.xl.formatting(row, 2, sz=[12], b='tfftf', itl='ftfft')
+        self.xl.formatting(row, 2, sz=[12], b="tfftf", itl="ftfft")
         row = self.xl.put_val(row, 2, val3)
         row += 1
 
@@ -62,15 +61,15 @@ class Report:
     def totalmat(self, matid, tpp=None):
         """Получаем общее кол-во материала"""
 
-        Mat = namedtuple('Mat', 'name unit cnt')
-        mat_name = self.nm.property_name(matid, 'Name')
-        mat_unit = self.nm.property_name(matid, 'UnitsName')
+        Mat = namedtuple("Mat", "name unit cnt")
+        mat_name = self.nm.property_name(matid, "Name")
+        mat_unit = self.nm.property_name(matid, "UnitsName")
         mat_cnt = self.nm.mat_count(matid, tpp)
         mat = Mat(mat_name, mat_unit, mat_cnt)
         list_bands = self.pn.total_bands_to_panels(self.pn.list_panels(matid, tpp))
         bands = []
         for band in list_bands:
-            Band = namedtuple('Band', 'name unit length')
+            Band = namedtuple("Band", "name unit length")
             prop = self.nm.properties(band.priceid)
             band_name = prop.name
             band_unit = prop.unitsname
@@ -83,10 +82,22 @@ class Report:
 
         idPans = self.pn.list_panels(matid, tpp)
         listPan = []
-        keys = ('name', 'thickness', 'article', 'length', 'width', 'cnt',
-                'band_x1', 'band_x2', 'band_y1', 'band_y2', 'cpos', 'note')
+        keys = (
+            "name",
+            "thickness",
+            "article",
+            "length",
+            "width",
+            "cnt",
+            "band_x1",
+            "band_x2",
+            "band_y1",
+            "band_y2",
+            "cpos",
+            "note",
+        )
         for id_pan in idPans:
-            Pans = namedtuple('Pans', keys)
+            Pans = namedtuple("Pans", keys)
             if self.pn.form(id_pan) == 0:
                 telems = self.bs.telems(id_pan)
                 matprop = self.nm.properties(matid)
@@ -102,24 +113,53 @@ class Report:
                 band_y2 = self.pn.band_y2(id_pan).thickband
                 cpos = telems.commonpos
                 pdir = self.pn.dir(id_pan)
-                note_curvepath = 'Фигурная' if self.pn.curvepath(id_pan) else ''
-                slotx = list(map('{0.beg}ш{0.width}г{0.depth}'.format,
-                                 self.pn.slots_x_par(id_pan)))
-                sloty = list(map('{0.beg}ш{0.width}г{0.depth}'.format,
-                                 self.pn.slots_y_par(id_pan)))
+                note_curvepath = "Фигурная" if self.pn.curvepath(id_pan) else ""
+                slotx = list(
+                    map(
+                        "{0.beg}ш{0.width}г{0.depth}".format,
+                        self.pn.slots_x_par(id_pan),
+                    )
+                )
+                sloty = list(
+                    map(
+                        "{0.beg}ш{0.width}г{0.depth}".format,
+                        self.pn.slots_y_par(id_pan),
+                    )
+                )
                 if (45 < pdir <= 135) or (225 < pdir <= 315):
                     slotx, sloty = sloty, slotx
-                note_slotx = "Паз{0} по X {1}".format("ы" if len(slotx) > 1 else "",
-                                                      "; ".join(slotx)) if slotx else ""
-                note_sloty = "Паз{0} по Y {1}".format("ы" if len(sloty) > 1 else "",
-                                                      "; ".join(sloty)) if sloty else ""
+                note_slotx = (
+                    "Паз{0} по X {1}".format(
+                        "ы" if len(slotx) > 1 else "", "; ".join(slotx)
+                    )
+                    if slotx
+                    else ""
+                )
+                note_sloty = (
+                    "Паз{0} по Y {1}".format(
+                        "ы" if len(sloty) > 1 else "", "; ".join(sloty)
+                    )
+                    if sloty
+                    else ""
+                )
                 notes = [note_curvepath, note_slotx, note_sloty]
                 note = ". ".join(list(filter(None, notes)))
-                pans = Pans(name, thickness, article, length, width, cnt, band_x1,
-                            band_x2, band_y1, band_y2, cpos, note
-                            )
+                pans = Pans(
+                    name,
+                    thickness,
+                    article,
+                    length,
+                    width,
+                    cnt,
+                    band_x1,
+                    band_x2,
+                    band_y1,
+                    band_y2,
+                    cpos,
+                    note,
+                )
                 listPan.append(pans)
-        newlist = k3r.utils.sum_by_key(listPan, 'cpos', 'cnt')
+        newlist = k3r.utils.sum_by_key(listPan, "cpos", "cnt")
         return newlist
 
     def rep_pan(self, name, mat, tpp=None):
@@ -133,54 +173,82 @@ class Report:
             if mt:
                 val = (mt.name, "", "", mt.unit, mt.cnt)
                 row = self.xl.put_val(row, 2, val)
-                self.xl.ws.merge_cells('B{0}:D{0}'.format(row - 1))
+                self.xl.ws.merge_cells("B{0}:D{0}".format(row - 1))
             if bands:
                 for band in bands:
                     val = (band.name, "", "", band.unit, band.length)
                     row = self.xl.put_val(row, 2, val)
-                    self.xl.ws.merge_cells('B{0}:D{0}'.format(row - 1))
-        rang = 'B{0}:F{1}'.format(rowstart, row - 1)
-        self.xl.style_to_range(rang, 'Таблица 1')
+                    self.xl.ws.merge_cells("B{0}:D{0}".format(row - 1))
+        rang = "B{0}:F{1}".format(rowstart, row - 1)
+        self.xl.style_to_range(rang, "Таблица 1")
         row += 1
         row1 = row
         # Формируем шапку
-        val = ('№дет', 'Название', 'толщ', 'Артикул', 'Длина', 'Ширина', \
-               'шт', 'Кромка', '', '', '', 'Примечание')
+        val = (
+            "№дет",
+            "Название",
+            "толщ",
+            "Артикул",
+            "Длина",
+            "Ширина",
+            "шт",
+            "Кромка",
+            "",
+            "",
+            "",
+            "Примечание",
+        )
         row = self.xl.put_val(row, 1, val)
-        val = ('Длина', '', 'Ширина')
+        val = ("Длина", "", "Ширина")
         row = self.xl.put_val(row, 8, val)
         row2 = row
         val = (1, 3, 2, 4)
         row = self.xl.put_val(row, 8, val)
-        self.xl.ws.merge_cells('A{0}:A{1}'.format(row1, row2))
-        self.xl.ws.merge_cells('B{0}:B{1}'.format(row1, row2))
-        self.xl.ws.merge_cells('C{0}:C{1}'.format(row1, row2))
-        self.xl.ws.merge_cells('D{0}:D{1}'.format(row1, row2))
-        self.xl.ws.merge_cells('E{0}:E{1}'.format(row1, row2))
-        self.xl.ws.merge_cells('F{0}:F{1}'.format(row1, row2))
-        self.xl.ws.merge_cells('G{0}:G{1}'.format(row1, row2))
-        self.xl.ws.merge_cells('H{0}:K{0}'.format(row1))
-        self.xl.ws.merge_cells('H{0}:I{0}'.format(row1 + 1))
-        self.xl.ws.merge_cells('J{0}:K{0}'.format(row1 + 1))
-        self.xl.ws.merge_cells('L{0}:L{1}'.format(row1, row2))
-        self.xl.style_to_range('A{0}:L{1}'.format(row1, row), 'Шапка 1')
-        self.xl.formatting(row1, 1, ha='c', va='cccccccccccc')
-        self.xl.formatting(row1, 3, r=[90, ])
+        self.xl.ws.merge_cells("A{0}:A{1}".format(row1, row2))
+        self.xl.ws.merge_cells("B{0}:B{1}".format(row1, row2))
+        self.xl.ws.merge_cells("C{0}:C{1}".format(row1, row2))
+        self.xl.ws.merge_cells("D{0}:D{1}".format(row1, row2))
+        self.xl.ws.merge_cells("E{0}:E{1}".format(row1, row2))
+        self.xl.ws.merge_cells("F{0}:F{1}".format(row1, row2))
+        self.xl.ws.merge_cells("G{0}:G{1}".format(row1, row2))
+        self.xl.ws.merge_cells("H{0}:K{0}".format(row1))
+        self.xl.ws.merge_cells("H{0}:I{0}".format(row1 + 1))
+        self.xl.ws.merge_cells("J{0}:K{0}".format(row1 + 1))
+        self.xl.ws.merge_cells("L{0}:L{1}".format(row1, row2))
+        self.xl.style_to_range("A{0}:L{1}".format(row1, row), "Шапка 1")
+        self.xl.formatting(row1, 1, ha="c", va="cccccccccccc")
+        self.xl.formatting(
+            row1,
+            3,
+            r=[
+                90,
+            ],
+        )
         for imat in mat:
             pans = self.list_pan(imat.priceid, tpp)
-            rang = 'A{0}:L{0}'.format(row)
-            self.xl.style_to_range(rang, 'Заголовок 1')
+            rang = "A{0}:L{0}".format(row)
+            self.xl.style_to_range(rang, "Заголовок 1")
             self.xl.ws.merge_cells(rang)
             row = self.xl.put_val(row, 1, imat.name)
-            rowstart = row
+            rang = "A{0}:L{1}".format(row, row + len(pans))
+            self.xl.style_to_range(rang, "Таблица 1")
             for p in pans:
-                val = (p.cpos, p.name, imat.thickness, imat.article,
-                       p.length, p.width, p.cnt,
-                       p.band_x1, p.band_x2, p.band_y1, p.band_y2, p.note
-                       )
+                val = (
+                    p.cpos,
+                    p.name,
+                    imat.thickness,
+                    imat.article,
+                    p.length,
+                    p.width,
+                    p.cnt,
+                    p.band_x1,
+                    p.band_x2,
+                    p.band_y1,
+                    p.band_y2,
+                    p.note,
+                )
                 row = self.xl.put_val(row, 1, val)
-            rang = 'A{0}:L{1}'.format(rowstart, row - 1)
-            self.xl.style_to_range(rang, 'Таблица 1')
+                self.xl.formatting(row - 1, 5, nf=["0", "0"])
 
     def makereport(self, tpp=None):
         # 'Формируем данные'
@@ -213,48 +281,47 @@ class Report:
             allmat.extend(listGLS)
             allmat.extend(listmat)
             allmat.sort(key=lambda x: [x.mattypeid, x.thickness], reverse=True)
-            self.rep_pan('Деталировка', allmat, tpp)
+            self.rep_pan("Деталировка", allmat, tpp)
             return
 
         if listDSP:
             listDSP.sort(key=lambda x: x.thickness, reverse=True)
-            self.rep_pan('ДСП', listDSP, tpp)
+            self.rep_pan("ДСП", listDSP, tpp)
 
         if listMDF:
             listMDF.sort(key=lambda x: x.thickness, reverse=True)
-            self.rep_pan('МДФ', listMDF, tpp)
+            self.rep_pan("МДФ", listMDF, tpp)
 
         if listDVP:
             listDVP.sort(key=lambda x: x.thickness, reverse=True)
-            self.rep_pan('ДВП', listDVP, tpp)
+            self.rep_pan("ДВП", listDVP, tpp)
 
         if listGLS:
             listGLS.sort(key=lambda x: x.thickness, reverse=True)
-            self.rep_pan('Стекло', listGLS, tpp)
+            self.rep_pan("Стекло", listGLS, tpp)
 
         if listmat:
             listmat.sort(key=lambda x: [x.mattypeid, x.thickness], reverse=True)
-            self.rep_pan('Прочее', listmat, tpp)
+            self.rep_pan("Прочее", listmat, tpp)
 
 
 def start(fileDB, projreppath, project, ph, onelist):
     # Подключаемся к базе выгрузки
-    db = k3r.db.DB()
-    db.open(fileDB)
+    db = k3r.db.DB(fileDB)
 
     rep = Report(db, ph, onelist)
     rep.makereport()
     db.close()
-    file = os.path.join(projreppath, '{}.xlsx'.format(project))
+    file = os.path.join(projreppath, "{}.xlsx".format(project))
     rep.xl.save(file)
     os.startfile(file)
     return True
 
 
-if __name__ == '__main__':
-    fileDB = r'd:\К3\Самара\Самара черновик\249\249.mdb'
-    projreppath = r'd:\К3\Самара\Самара черновик\249\Reports'
-    ph = '8-999-8791288'
+if __name__ == "__main__":
+    fileDB = r"d:\К3\Самара\Самара черновик\249\249.mdb"
+    projreppath = r"d:\К3\Самара\Самара черновик\249\Reports"
+    ph = "8-999-8791288"
     onelist = 1
     project = "Деталировка заготовок"
     start(fileDB, projreppath, project, ph, onelist)

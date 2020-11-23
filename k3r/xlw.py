@@ -2,7 +2,7 @@ import os
 import xlsxwriter
 
 
-__author__ = 'Виноградов А.Г. г.Белгород  март 2020'
+__author__ = "Виноградов А.Г. г.Белгород  март 2020"
 
 
 def num_to_col(col_number):
@@ -25,19 +25,19 @@ def cm_to_inch(cm):
 
 class Doc:
     """Создание документа Excel
-        ExcelDoc - создаёт объект Excel
-        newheet - создаёт страницу в книге с заданным именем
-        save - сохраняет документ в указанное место
-        put_val - добавляет запись в документ
+    ExcelDoc - создаёт объект Excel
+    newheet - создаёт страницу в книге с заданным именем
+    save - сохраняет документ в указанное место
+    put_val - добавляет запись в документ
     """
 
     def __init__(self):
         """Создание объекта Excel, инициализация умолчаний"""
         self.xl = xlsxwriter
-        self.wb = self.xl.Workbook(r'd:\test.xlsx')
+        self.wb = self.xl.Workbook(r"d:\test.xlsx")
         self.ws = None
 
-        self.sheet_orient = 'PORTRAIT'
+        self.sheet_orient = "PORTRAIT"
         self.paper_size = 9
         self.right_margin = 0.6
         self.left_margin = 0.6
@@ -56,15 +56,17 @@ class Doc:
         """Добавление листа"""
 
         self.ws = self.wb.add_worksheet(name[:31])
-        if self.sheet_orient == 'PORTRAIT':
+        if self.sheet_orient == "PORTRAIT":
             self.ws.set_portrait()
-        if self.sheet_orient == 'LANDSCAPE':
+        if self.sheet_orient == "LANDSCAPE":
             self.ws.set_landscape()
         self.ws.set_paper(self.paper_size)
-        self.ws.set_margins(left=cm_to_inch(self.left_margin),
-                            right=cm_to_inch(self.right_margin),
-                            top=cm_to_inch(self.top_margin),
-                            bottom=cm_to_inch(self.bottom_margin))
+        self.ws.set_margins(
+            left=cm_to_inch(self.left_margin),
+            right=cm_to_inch(self.right_margin),
+            top=cm_to_inch(self.top_margin),
+            bottom=cm_to_inch(self.bottom_margin),
+        )
         if self.center_horizontally:
             self.ws.center_horizontally()
         if tab_color:
@@ -74,62 +76,125 @@ class Doc:
         """Создание базовых стилей"""
 
         styles = [
-            {'name': 'Заголовок 1', 'bg': 'F2F2F2', 'bc': 'D9D9D9', 'b': True, 'align': 'right',
-             'bb': 1},
-            {'name': 'Заголовок 2', 'bg': 'D9D9D9', 'bc': 'BFBFBF', 'b': True, 'align': 'right',
-             'bb': 1},
-            {'name': 'Заголовок 3', 'bg': '8DB4E2', 'bc': '16365C', 'b': True, 'align': 'right',
-             'bb': 1},
-            {'name': 'Заголовок 4', 'bg': 'B8CCE4', 'bc': '366092', 'b': True, 'align': 'right',
-             'bb': 1},
-            {'name': 'Заголовок 5', 'bg': 'E6B8B7', 'bc': '963634', 'b': True, 'align': 'right',
-             'bb': 1},
-            {'name': 'Заголовок 6', 'bg': 'D8E4BC', 'bc': '76933C', 'b': True, 'align': 'right',
-             'bb': 1},
-            {'name': 'Заголовок 7', 'bg': 'CCC0DA', 'bc': '60497A', 'b': True, 'align': 'right',
-             'bb': 1},
-            {'name': 'Заголовок 8', 'bg': 'B7DEE8', 'bc': '31869B', 'b': True, 'align': 'right',
-             'bb': 1},
-            {'name': 'Итоги 1', 'bg': 'FABF8F', 'bc': 'E26B0A', 'b': True, 'align': 'right',
-             'bb': 1, 'bt': 'thick'},
-            {'name': 'Таблица 1', 'bl': '1', 'br': '1', 'bt': '1', 'bb': 1, 'wr': True, 'bc': '808080'},
-            {'name': 'Шапка 1', 'bl': '1', 'br': '1', 'bt': '1', 'bb': 1, 'b': True}
+            {
+                "name": "Заголовок 1",
+                "bg": "F2F2F2",
+                "bc": "D9D9D9",
+                "b": True,
+                "align": "right",
+                "bb": 1,
+            },
+            {
+                "name": "Заголовок 2",
+                "bg": "D9D9D9",
+                "bc": "BFBFBF",
+                "b": True,
+                "align": "right",
+                "bb": 1,
+            },
+            {
+                "name": "Заголовок 3",
+                "bg": "8DB4E2",
+                "bc": "16365C",
+                "b": True,
+                "align": "right",
+                "bb": 1,
+            },
+            {
+                "name": "Заголовок 4",
+                "bg": "B8CCE4",
+                "bc": "366092",
+                "b": True,
+                "align": "right",
+                "bb": 1,
+            },
+            {
+                "name": "Заголовок 5",
+                "bg": "E6B8B7",
+                "bc": "963634",
+                "b": True,
+                "align": "right",
+                "bb": 1,
+            },
+            {
+                "name": "Заголовок 6",
+                "bg": "D8E4BC",
+                "bc": "76933C",
+                "b": True,
+                "align": "right",
+                "bb": 1,
+            },
+            {
+                "name": "Заголовок 7",
+                "bg": "CCC0DA",
+                "bc": "60497A",
+                "b": True,
+                "align": "right",
+                "bb": 1,
+            },
+            {
+                "name": "Заголовок 8",
+                "bg": "B7DEE8",
+                "bc": "31869B",
+                "b": True,
+                "align": "right",
+                "bb": 1,
+            },
+            {
+                "name": "Итоги 1",
+                "bg": "FABF8F",
+                "bc": "E26B0A",
+                "b": True,
+                "align": "right",
+                "bb": 1,
+                "bt": "thick",
+            },
+            {
+                "name": "Таблица 1",
+                "bl": "1",
+                "br": "1",
+                "bt": "1",
+                "bb": 1,
+                "wr": True,
+                "bc": "808080",
+            },
+            {"name": "Шапка 1", "bl": "1", "br": "1", "bt": "1", "bb": 1, "b": True},
         ]
 
         for s in styles:
-            n = s['name']
+            n = s["name"]
             self.styles[n] = self.wb.add_format()
             self.styles[n].set_font_name(self.font)
             self.styles[n].set_font_size(self.font_size)
-            if 'txtclr' in s.keys():
-                self.styles[n].set_font_color(s['txtclr'])
-            if 'b' in s.keys():
-                self.styles[n].set_bold(s['b'])
-            if 'itl' in s.keys():
-                self.styles[n].set_italic(s['itl'])
-            if 'align' in s.keys():
-                self.styles[n].set_align(s['align'])
-            if 'valign' in s.keys():
-                self.styles[n].set_align(s['valign'])
-            if 'wr' in s.keys():
-                self.styles[n].set_text_wrap(s['wr'])
-            if 'bg' in s.keys():
+            if "txtclr" in s.keys():
+                self.styles[n].set_font_color(s["txtclr"])
+            if "b" in s.keys():
+                self.styles[n].set_bold(s["b"])
+            if "itl" in s.keys():
+                self.styles[n].set_italic(s["itl"])
+            if "align" in s.keys():
+                self.styles[n].set_align(s["align"])
+            if "valign" in s.keys():
+                self.styles[n].set_align(s["valign"])
+            if "wr" in s.keys():
+                self.styles[n].set_text_wrap(s["wr"])
+            if "bg" in s.keys():
                 self.styles[n].set_pattern(1)
-                self.styles[n].set_bg_color(s['bg'])
-            if 'bb' in s.keys():
-                self.styles[n].set_bottom(s['bb'])
-                self.styles[n].set_bottom_color(s.get('bc', '000000'))
-            if 'bt' in s.keys():
-                self.styles[n].set_top(s['bt'])
-                self.styles[n].set_top_color(s.get('bc', '000000'))
-            if 'br' in s.keys():
-                self.styles[n].set_right(s['br'])
-                self.styles[n].set_right_color(s.get('bc', '000000'))
-            if 'bl' in s.keys():
-                self.styles[n].set_left(s['bl'])
-                self.styles[n].set_left_color(s.get('bc', '000000'))
+                self.styles[n].set_bg_color(s["bg"])
+            if "bb" in s.keys():
+                self.styles[n].set_bottom(s["bb"])
+                self.styles[n].set_bottom_color(s.get("bc", "000000"))
+            if "bt" in s.keys():
+                self.styles[n].set_top(s["bt"])
+                self.styles[n].set_top_color(s.get("bc", "000000"))
+            if "br" in s.keys():
+                self.styles[n].set_right(s["br"])
+                self.styles[n].set_right_color(s.get("bc", "000000"))
+            if "bl" in s.keys():
+                self.styles[n].set_left(s["bl"])
+                self.styles[n].set_left_color(s.get("bc", "000000"))
 
-    def save(self, pathname='test.xlsx'):
+    def save(self, pathname="test.xlsx"):
         """Присваивает имя файлу и закрывает"""
         # self.wb.filename('test.xlsx')
         self.wb.close()
@@ -173,7 +238,7 @@ class Doc:
         paper - цвет заливки в формате FFF000
         """
         cells = self.ws[range_cells]
-        filling = PatternFill(fill_type='solid', start_color=fill, end_color=fill)
+        filling = PatternFill(fill_type="solid", start_color=fill, end_color=fill)
         font_color = Font(color=ink)
         if type(cells) is tuple:
             for cell in cells:
@@ -188,8 +253,19 @@ class Doc:
             if fill:
                 cells.fill = filling
 
-    def formatting(self, rw, clm, ha=None, va=None, wrap=None, bld=None, itl=None,
-                   nf=None, rot=None, sz=None):
+    def formatting(
+        self,
+        rw,
+        clm,
+        ha=None,
+        va=None,
+        wrap=None,
+        bld=None,
+        itl=None,
+        nf=None,
+        rot=None,
+        sz=None,
+    ):
         """Выравнивание текста в ячейках по горизонтали и вертикали; перенос текста; формат числа
         :param int rw: row - Строка
         :param int clm: column - Колонка
@@ -202,8 +278,8 @@ class Doc:
         :param list|tuple|int sz: size font Размер шрифта
         :param str itl: italic Курсивный шрифт
         """
-        align = {'l': 'left', 'r': 'right', 'c': 'center', 't': 'top', 'bld': 'bottom'}
-        ft = {'f': False, 't': True}
+        align = {"l": "left", "r": "right", "c": "center", "t": "top", "bld": "bottom"}
+        ft = {"f": False, "t": True}
         if ha:
             ha = ha.lower()
         if va:
@@ -227,33 +303,50 @@ class Doc:
             w = ft[wrap[min(i, len(wrap) - 1)]] if wrap else None
             b = ft[bld[min(i, len(bld) - 1)]] if bld else self.ws[cells].font.b
             it = ft[itl[min(i, len(itl) - 1)]] if itl else self.ws[cells].font.i
-            r = rot[min(i, len(rot) - 1)] if any(rot) else self.ws[cells].alignment.textRotation
+            r = (
+                rot[min(i, len(rot) - 1)]
+                if any(rot)
+                else self.ws[cells].alignment.textRotation
+            )
             fz = sz[min(i, len(sz) - 1)] if any(sz) else self.ws[cells].font.sz
             n = nf[min(i, len(nf) - 1)] if any(nf) else self.ws[cells].number_format
 
-            self.ws[cells].alignment = Alignment(horizontal=h, vertical=v,
-                                                 text_rotation=r,
-                                                 wrap_text=w)
+            self.ws[cells].alignment = Alignment(
+                horizontal=h, vertical=v, text_rotation=r, wrap_text=w
+            )
             self.ws[cells].font = Font(size=fz, bold=b, italic=it)
             self.ws[cells].number_format = n
 
-    def grid_set(self, wt='xlThin', ls='xlContinuous', tc=2):
+    def grid_set(self, wt="xlThin", ls="xlContinuous", tc=2):
         """Настройка сетки"""
         self.theme_color = tc
         # Weight - толщины линий
-        weight = {'xlThin': 2, 'xlHairline': 1, 'xlThick': 4, 'xlMedium': -4138}
+        weight = {"xlThin": 2, "xlHairline": 1, "xlThick": 4, "xlMedium": -4138}
         self.weight = weight[wt]
         # LineStyle - стиль линий
-        line_style = {'xlContinuous': 1, 'xlDot': -4118, 'xlDash': -4115, 'xlDashDot': 4, 'xlNone': -4142,
-                      'xlDouble': -4119, 'xlSlantDashDot': 13}
+        line_style = {
+            "xlContinuous": 1,
+            "xlDot": -4118,
+            "xlDash": -4115,
+            "xlDashDot": 4,
+            "xlNone": -4142,
+            "xlDouble": -4119,
+            "xlSlantDashDot": 13,
+        }
         self.line_style = line_style[ls]
 
-    def grid(self, rw=0, clm=0, ln=0, hg=0, sd='lrud'):
+    def grid(self, rw=0, clm=0, ln=0, hg=0, sd="lrud"):
         """Отрисовка сетки"""
         # TODO: адаптировать под новый модуль
-        cells = num_to_col(clm) + str(rw) + ":" + num_to_col(clm + abs(ln) - 1) + str(rw + abs(hg) - 1)
+        cells = (
+            num_to_col(clm)
+            + str(rw)
+            + ":"
+            + num_to_col(clm + abs(ln) - 1)
+            + str(rw + abs(hg) - 1)
+        )
         sd = sd.lower()
-        side = {'l': 7, 'u': 8, 'd': 9, 'r': 10, 'v': 11, 'h': 12}
+        side = {"l": 7, "u": 8, "d": 9, "r": 10, "v": 11, "h": 12}
         for i in sd:
             gr = self.wb.ActiveSheet.Range(cells).Borders(side[i])
             gr.LineStyle = self.line_style
@@ -266,12 +359,18 @@ class Doc:
         # TODO: адаптировать под новый модуль
         self.wb.Sheets(s1).Move(Before=self.wb.Sheets(s2))
 
-    def pic_insert(self, rw, clm, ln=1, hg=1, file='', hor='c', ver='c'):
+    def pic_insert(self, rw, clm, ln=1, hg=1, file="", hor="c", ver="c"):
         """Вставка картинки"""
         # TODO: адаптировать под новый модуль
         if not os.path.exists(file):
             return None
-        cells = num_to_col(clm) + str(rw) + ":" + num_to_col(clm + abs(ln) - 1) + str(rw + abs(hg) - 1)
+        cells = (
+            num_to_col(clm)
+            + str(rw)
+            + ":"
+            + num_to_col(clm + abs(ln) - 1)
+            + str(rw + abs(hg) - 1)
+        )
         TargetCells = self.wb.ActiveSheet.Range(cells)
         pic = self.wb.ActiveSheet.Shapes.AddPicture(file, 0, 1, -1, -1, -1, -1)
         lWscale = pic.Height / pic.Width
@@ -297,8 +396,8 @@ class Doc:
         vt = TargetCells.Top
         vc = TargetCells.Top + (tch - ph) / 2
         vb = TargetCells.Top + (tch - ph)
-        h_align = {'l': hl, 'c': hc, 'r': hr}
-        v_align = {'t': vt, 'c': vc, 'b': vb}
+        h_align = {"l": hl, "c": hc, "r": hr}
+        v_align = {"t": vt, "c": vc, "b": vb}
         pic.Top = v_align[ver]
         pic.Left = h_align[hor]
         pic.LockAspectRatio = 1
@@ -306,7 +405,7 @@ class Doc:
     def write(self, row, col, *args):
         self.ws.write(row, col, *args)
 
-    def put_val(self, row=1, column=1, value=''):
+    def put_val(self, row=1, column=1, value=""):
         """Запись данных в ячейки"""
 
         if type(value) in (list, tuple):
@@ -319,13 +418,25 @@ class Doc:
     def print_area(self, rw, clm, ln, hg):
         """Задаёт область печати"""
         # TODO: адаптировать под новый модуль
-        cells = num_to_col(clm) + str(rw) + ":" + num_to_col(clm + abs(ln) - 1) + str(rw + abs(hg) - 1)
+        cells = (
+            num_to_col(clm)
+            + str(rw)
+            + ":"
+            + num_to_col(clm + abs(ln) - 1)
+            + str(rw + abs(hg) - 1)
+        )
         self.wb.ActiveSheet.PageSetup.PrintArea = cells
 
-    def table_style(self, rw, clm, ln, hg, tabname, style='TableStyleLight2', st=True):
+    def table_style(self, rw, clm, ln, hg, tabname, style="TableStyleLight2", st=True):
         """Задать таблицу стилей"""
         # TODO: адаптировать под новый модуль
-        cells = num_to_col(clm) + str(rw) + ":" + num_to_col(clm + abs(ln) - 1) + str(rw + abs(hg) - 1)
+        cells = (
+            num_to_col(clm)
+            + str(rw)
+            + ":"
+            + num_to_col(clm + abs(ln) - 1)
+            + str(rw + abs(hg) - 1)
+        )
         range = self.wb.ActiveSheet.Range(cells)
         self.wb.ActiveSheet.ListObjects.Add(1, range, 0, 1).Name = tabname
         self.wb.ActiveSheet.ListObjects(tabname).TableStyle = style
@@ -334,14 +445,14 @@ class Doc:
 
     def format_cond(self, rang, tp, op, f1, f2):
         """Условное форматирование
-           rang - диапозон ("A:C")
-           tp - Type Определяет, основан ли условный формат на значении ячейки или выражении
-           op - Operator Условный оператор формата. Может быть одна из следующих констант XlFormatConditionOperator:
-                xlBetween, xlEqual, xlGreater, xlGreaterEqual, xlLess, xlLessEqual, xlNotBetween, или xlNotEqual.
-                Если Тип - xlExpression, аргумент Оператора проигнорирован
-           f1 - Formula1 Значение или выражение связанное с условным форматированием. Может быть постоянное значение, строковое значение, ссылка на ячейку или формула.
-           f2 - Formula2 Значение или выражение связанное со второй частью условного форматирования, когда Оператор - xlBetween или xlNotBetween (иначе, этот параметр проигнорирован).
-                Может быть постоянное значение, строковое значение, ссылка на ячейку или формула.
+        rang - диапозон ("A:C")
+        tp - Type Определяет, основан ли условный формат на значении ячейки или выражении
+        op - Operator Условный оператор формата. Может быть одна из следующих констант XlFormatConditionOperator:
+             xlBetween, xlEqual, xlGreater, xlGreaterEqual, xlLess, xlLessEqual, xlNotBetween, или xlNotEqual.
+             Если Тип - xlExpression, аргумент Оператора проигнорирован
+        f1 - Formula1 Значение или выражение связанное с условным форматированием. Может быть постоянное значение, строковое значение, ссылка на ячейку или формула.
+        f2 - Formula2 Значение или выражение связанное со второй частью условного форматирования, когда Оператор - xlBetween или xlNotBetween (иначе, этот параметр проигнорирован).
+             Может быть постоянное значение, строковое значение, ссылка на ячейку или формула.
         """
         # TODO: адаптировать под новый модуль
         self.wb.ActiveSheet.Range(rang).FormatConditions.Add(tp, op, f1, f2)

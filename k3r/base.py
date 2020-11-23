@@ -4,11 +4,12 @@ from . import utils
 from collections import namedtuple
 
 
-__author__ = 'Виноградов А.Г. г.Белгород  август 2015'
+__author__ = "Виноградов А.Г. г.Белгород  август 2015"
 
 
 class Base:
     """Класс работы с таблицами базы выгрузки"""
+
     def __init__(self, db):
         self.db = db
 
@@ -16,10 +17,23 @@ class Base:
         """
         Выводит именованный кортеж данных из таблицы TOrderInfo
         """
-        keys = ('orderid', 'ordername', 'ordernumber', 'customer', 'address',
-                'telephonenumber', 'orderdata', 'orderexpirationdata', 'firm',
-                'salon', 'acceptor', 'executor', 'additionalinfo', 'toworking')
-        TOrder = namedtuple('TOrder', keys)
+        keys = (
+            "orderid",
+            "ordername",
+            "ordernumber",
+            "customer",
+            "address",
+            "telephonenumber",
+            "orderdata",
+            "orderexpirationdata",
+            "firm",
+            "salon",
+            "acceptor",
+            "executor",
+            "additionalinfo",
+            "toworking",
+        )
+        TOrder = namedtuple("TOrder", keys)
         sql = "SELECT * FROM TOrderInfo"
         res = self.db.rs(sql)
         if res:
@@ -31,9 +45,20 @@ class Base:
         """
         Данные из таблицы объектов TObjects
         """
-        keys = ('unitpos', 'placetype', 'article', 'exarticle', 'isstandart',
-                'cataloque', 'library', 'libname', 'libcaption', 'protoid', 'baseprice')
-        TObjects = namedtuple('TObjects', keys)
+        keys = (
+            "unitpos",
+            "placetype",
+            "article",
+            "exarticle",
+            "isstandart",
+            "cataloque",
+            "library",
+            "libname",
+            "libcaption",
+            "protoid",
+            "baseprice",
+        )
+        TObjects = namedtuple("TObjects", keys)
         objects = []
         if up:
             sql = "SELECT * FROM TObjects WHERE UnitPos = {}".format(up)
@@ -51,15 +76,32 @@ class Base:
 
     def telems(self, unitpos):
 
-        keys = ('parentpos', 'topparentpos', 'detailpos', 'commonpos',
-                'levelpos', 'furntype', 'furnkind', 'name', 'priceid',
-                'goodsid', 'sumcost', 'xunit', 'yunit', 'zunit', 'count',
-                'data', 'hashcode')
-        TElems = namedtuple('TElems', keys)
-        sql = "SELECT ParentPos, TopParentPos, DetailPos, CommonPos, LevelPos, "\
-              "FurnType, FurnKind, [Name], PriceID, " \
-              "GoodsID, SumCost, XUnit, YUnit, ZUnit, [Count], [Data], " \
-              "HashCode FROM TElems WHERE UnitPos={}".format(unitpos)
+        keys = (
+            "parentpos",
+            "topparentpos",
+            "detailpos",
+            "commonpos",
+            "levelpos",
+            "furntype",
+            "furnkind",
+            "name",
+            "priceid",
+            "goodsid",
+            "sumcost",
+            "xunit",
+            "yunit",
+            "zunit",
+            "count",
+            "data",
+            "hashcode",
+        )
+        TElems = namedtuple("TElems", keys)
+        sql = (
+            "SELECT ParentPos, TopParentPos, DetailPos, CommonPos, LevelPos, "
+            "FurnType, FurnKind, [Name], PriceID, "
+            "GoodsID, SumCost, XUnit, YUnit, ZUnit, [Count], [Data], "
+            "HashCode FROM TElems WHERE UnitPos={}".format(unitpos)
+        )
         res = self.db.rs(sql)
         if res:
             return TElems(*res[0])
@@ -70,9 +112,9 @@ class Base:
         """
         Все данные из таблицы TDrawings
         """
-        keys = ('unitpos', 'drawingname', 'drawingdescr', 'sizex', 'sizey')
-        TDrawings = namedtuple('TDrawings', keys)
-        filtrup = ('WHERE UnitPos = {}'.format(unitpos) if unitpos else '')
+        keys = ("unitpos", "drawingname", "drawingdescr", "sizex", "sizey")
+        TDrawings = namedtuple("TDrawings", keys)
+        filtrup = "WHERE UnitPos = {}".format(unitpos) if unitpos else ""
         sql = "SELECT * FROM TDrawings {}".format(filtrup)
         res = self.db.rs(sql)
         if res:
@@ -84,8 +126,12 @@ class Base:
         """
         Таблица атрибутов
         """
-        sql ="SELECT atr.Name, Switch(AttrType=1, AttrString, AttrType=2, AttrReal, AttrType=3,AttrText, " \
-             "AttrType=4,AttrReal) AS val FROM TAttributes AS atr WHERE atr.UnitPos={}".format(unitpos)
+        sql = (
+            "SELECT atr.Name, Switch(AttrType=1, AttrString, AttrType=2, AttrReal, AttrType=3,AttrText, "
+            "AttrType=4,AttrReal) AS val FROM TAttributes AS atr WHERE atr.UnitPos={}".format(
+                unitpos
+            )
+        )
         res = dict(self.db.rs(sql))
         return res
 
@@ -93,9 +139,9 @@ class Base:
         """
         Данные из таблицы TNGoods
         """
-        keys = ('id', 'name', 'groupid', 'groupname', 'furntype', 'parentid', 'glevel')
-        TNGoods = namedtuple('TNGoods', keys)
-        filtrid = ('WHERE ID = {}'.format(id_) if id_ else '')
+        keys = ("id", "name", "groupid", "groupname", "furntype", "parentid", "glevel")
+        TNGoods = namedtuple("TNGoods", keys)
+        filtrid = "WHERE ID = {}".format(id_) if id_ else ""
         sql = "SELECT * FROM TNGoods {}".format(filtrid)
         res = self.db.rs(sql)
         if res:
@@ -107,9 +153,23 @@ class Base:
         """
         Данные таблицы номенклатуры
         """
-        keys = ('id', 'name', 'mattypeid', 'mattypename', 'groupid', 'groupname', 'kindid',
-                'kindname', 'article', 'unitsid', 'unitsname', 'price', 'parentid', 'glevel')
-        TNNomenclature = namedtuple('TNNomenclature', keys)
+        keys = (
+            "id",
+            "name",
+            "mattypeid",
+            "mattypename",
+            "groupid",
+            "groupname",
+            "kindid",
+            "kindname",
+            "article",
+            "unitsid",
+            "unitsname",
+            "price",
+            "parentid",
+            "glevel",
+        )
+        TNNomenclature = namedtuple("TNNomenclature", keys)
         sql = "SELECT * FROM TNNomenclature WHERE ID = {0}".format(id_)
         res = self.db.rs(sql)
         if res:
@@ -120,9 +180,11 @@ class Base:
     def get_anc_furntype(self, up, ft):
         """Возвращает родителя элемента с UnitPos = up по правилу LIKE ft*"""
 
-        sql = "SELECT te.UnitPos, te.ParentPos, te.TopParentPos, te.FurnType " \
-              "FROM TElems AS te LEFT JOIN TElems AS te1 ON te.TopParentPos = te1.TopParentPos " \
-              "WHERE te1.UnitPos={}".format(up)
+        sql = (
+            "SELECT te.UnitPos, te.ParentPos, te.TopParentPos, te.FurnType "
+            "FROM TElems AS te LEFT JOIN TElems AS te1 ON te.TopParentPos = te1.TopParentPos "
+            "WHERE te1.UnitPos={}".format(up)
+        )
         res = self.db.rs(sql)
         tree = utils.get_tree_parents(up, res)
         for i in tree:
@@ -143,13 +205,17 @@ class Base:
             [(598, '010300'), (599, '010100')]
         """
         if top:
-            parent = 'te.TopParentPos={0}'.format(up)
+            parent = "te.TopParentPos={0}".format(up)
         else:
-            parent = 'te.ParentPos={0}'.format(up)
-        sql = "SELECT te.UnitPos, te.FurnType FROM TElems AS te " \
-              "WHERE {0} AND te.FurnType Like '{1}%'".format(parent, ft)
+            parent = "te.ParentPos={0}".format(up)
+        sql = (
+            "SELECT te.UnitPos, te.FurnType FROM TElems AS te "
+            "WHERE {0} AND te.FurnType Like '{1}%'".format(parent, ft)
+        )
         if not up:
-            sql = "SELECT te.UnitPos, te.FurnType FROM TElems AS te " \
-                  "WHERE te.FurnType Like '{0}%'".format(ft)
+            sql = (
+                "SELECT te.UnitPos, te.FurnType FROM TElems AS te "
+                "WHERE te.FurnType Like '{0}%'".format(ft)
+            )
         res = self.db.rs(sql)
         return res

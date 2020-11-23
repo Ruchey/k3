@@ -10,7 +10,7 @@ def norm_key_prop(lst):
 
     new_list = []
     for tup in lst:
-        key = tup[0].replace(" ", "").lower().lstrip('0123456789.- ')
+        key = tup[0].replace(" ", "").lower().lstrip("0123456789.- ")
         new_list.append((key, tup[1]))
     return new_list
 
@@ -64,7 +64,7 @@ def group_by_keys(iterable, keys, sum_field=None, stick_field=None):
             Pans(cpos=3, name='Стойка левая', length=584, width=400, cnt=1),
         стало:
             Pans(cpos='2;3', name='Стойка правая', length=584, width=400, cnt=2),
-        """
+    """
     dist_keys = []
     new_list = []
     for i in iterable:
@@ -81,8 +81,10 @@ def group_by_keys(iterable, keys, sum_field=None, stick_field=None):
             cnt = sum(getattr(x, sum_field) for x in items)
             if stick_field:
                 stick_field_list = list(str(getattr(x, stick_field)) for x in items)
-                stick = ';'.join(OrderedDict.fromkeys(stick_field_list))
-                new_list.append(items[0]._replace(**{sum_field: cnt, stick_field: stick}))
+                stick = ";".join(OrderedDict.fromkeys(stick_field_list))
+                new_list.append(
+                    items[0]._replace(**{sum_field: cnt, stick_field: stick})
+                )
             else:
                 new_list.append(items[0]._replace(**{sum_field: cnt}))
         else:
@@ -102,7 +104,7 @@ def get_tree_parents(unitpos, table):
         return tree
 
 
-def tuple_append(tup, dic, name='NTuple'):
+def tuple_append(tup, dic, name="NTuple"):
     """Добавление в именованный кортеж данных из словаря"""
     tmp = tup._asdict()
     tmp.update(dic)

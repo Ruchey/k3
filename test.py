@@ -3,8 +3,8 @@ from pprint import pprint
 import k3r
 from k3r import get_tables
 
-fl = r'd:\test.xlsx'
-fileDB = r'd:\К3\Самара\Самара черновик\1\1.mdb'
+fl = r"d:\test.xlsx"
+fileDB = r"d:\К3\Самара\Самара черновик\1\1.mdb"
 
 
 db = k3r.db.DB(fileDB)
@@ -24,4 +24,3 @@ pprint(ln)
 
 det = [645, 645, 645, 560, 560, 2100, 2100, 1800, 1800, 430, 125, 320, 320]
 prep = 5300
-
