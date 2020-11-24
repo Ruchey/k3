@@ -51,12 +51,12 @@ class Long:
             6	Нижний профиль
             7	Балюстрада
         """
-        keys = ('type', 'priceid', 'length', 'width', 'height', 'cnt', 'form')
-        gr_keys = ('type', 'priceid', 'length', 'width', 'height', 'form')
+        keys = ('type', 'priceid', 'goodsid', 'length', 'width', 'height', 'cnt', 'form')
+        gr_keys = ('type', 'priceid', 'goodsid', 'length', 'width', 'height', 'form')
         filter_lt = "WHERE LongType={}".format(lt) if not lt is None else ""
         pref = " AND" if lt else "WHERE"
         filter_tpp = "{} te.TopParentPos={}".format(pref, tpp) if tpp else ""
-        sql = "SELECT tl.UnitPos, tl.LongType AS lt, te.PriceID, " \
+        sql = "SELECT tl.UnitPos, tl.LongType AS lt, te.PriceID, tl.LongGoodsID, " \
               "te.XUnit, te.YUnit, te.ZUnit, te.Count FROM TLongs AS tl INNER JOIN TElems AS te " \
               "ON tl.UnitPos = te.UnitPos {} ORDER BY tl.LongType".format(filter_lt + filter_tpp)
         res = self.db.rs(sql)
@@ -77,39 +77,26 @@ class Long:
         Входные данные:
         lt - LongType тип длиномера
         tpp - TopParentPos хозяин
-        Вывод: 'type', 'matid', 'length', 'goodsid'
+        Вывод: "type", "priceid", "form", 'goodsid', "quantity"
         """
-        keys = ('type', 'matid', 'length', 'goodsid')
+        keys = ("type", "priceid", "form", 'goodsid', "quantity")
         longs = self.long_list(lt, tpp)
-        nlst = {}
-        sc = []
+        total = []
+        gr_longs = {}
         for i in longs:
-            if not i[1:5] in list(nlst.keys()):
-                nlst[i[1:5]] = []
-            nlst[i[1:5]].append(i[0])
-        for i in nlst.items():
-            sql_pan = "SELECT Switch(" \
-                      "tnn.UnitsID=1, Sum(tp.Length*te.Count)/10^3," \
-                      "tnn.UnitsID=2, Sum(tp.Length*tp.Width/10^6*te.Count)," \
-                      "tnn.UnitsID=3, Sum(tp.Length*tp.Width*tp.Thickness/10^9*te.Count)," \
-                      "tnn.UnitsID not in (1,2,3), 0) AS Cnt FROM (TElems AS te LEFT JOIN TPanels AS tp ON " \
-                      "te.UnitPos = tp.UnitPos) LEFT JOIN TNNomenclature AS tnn ON te.PriceID = tnn.ID " \
-                      "WHERE te.ParentPos in {} GROUP BY tnn.UnitsID".format(tuple(i[1]))
-
-            sql_pf = "SELECT Round(Sum([tpf].[Length]/10^3*[te].[Count]), 2) AS Cnt " \
-                     "FROM TElems AS te INNER JOIN TProfiles AS tpf ON te.UnitPos = tpf.UnitPos " \
-                     "WHERE te.ParentPos in {}".format(tuple(i[1]))
-
-            sql_bl = "SELECT Round(Sum([tbl].[Length]/10^3*[te].[Count]), 2) AS Cnt " \
-                     "FROM TElems AS te INNER JOIN TBalusters AS tbl ON te.UnitPos = tbl.UnitPos " \
-                     "WHERE tbl.UnitPos in {}".format(tuple(i[1]))
-
-            d_sql = {'TPanels': sql_pan, 'TProfiles': sql_pf, 'TBalusters': sql_bl}
-            sql = d_sql[i[0][1]]
-            res = self.db.rs(sql)[0][0]
-            long = namedtuple('Long', keys)
-            sc.append(long(*[i[0][0], i[0][2], res, i[0][3]]))
-        return sc
+            key = (i.type, i.priceid, i.form, i.goodsid)
+            if not key in list(gr_longs.keys()):
+                gr_longs[key] = []
+            gr_longs[key].append((i.length, i.cnt))
+        for i in gr_longs:
+            form = i[2]
+            if form == 0:
+                quantity = sum(length*cnt for length, cnt in gr_longs[i])
+            else:
+                quantity = sum(cnt for length, cnt in gr_longs[i])
+            total_long = namedtuple("TLong", keys)
+            total.append(total_long(*(i + (quantity,))))
+        return total
 
     def long(self):
         pass
