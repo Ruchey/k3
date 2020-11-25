@@ -13,18 +13,18 @@ class Profile:
     def profiles(self, tpp=None):
         """Возвращает список именованных кортежей профилей.
         Не включает профиля длиномеров
-        priceid, len, formtype, cnt, elemname
+        cpos, priceid, len, formtype, cnt, elemname
         """
-        keys = ("priceid", "len", "formtype", "cnt", "elemname")
+        keys = ("cpos", "priceid", "len", "formtype", "cnt", "elemname")
         filter_tpp = " AND te.TopParentPos={}".format(tpp)
         if tpp is None:
             filter_tpp = ""
         sql = (
-            "SELECT te.PriceID, tpf.Length, tpf.FormType, SUM(te.Count), te.Name FROM TProfiles AS tpf "
+            "SELECT te.CommonPos, te.PriceID, tpf.Length, tpf.FormType, SUM(te.Count), te.Name FROM TProfiles AS tpf "
             "LEFT JOIN TElems AS te ON tpf.UnitPos = te.UnitPos "
             "WHERE NOT EXISTS(SELECT te.UnitPos FROM TElems AS te, TLongs AS tl "
             "WHERE te.ParentPos=tl.UnitPos AND te.UnitPos=tpf.UnitPos){} "
-            "GROUP BY te.PriceID, tpf.Length, tpf.FormType, te.Name ORDER BY te.PriceID".format(
+            "GROUP BY te.CommonPos, te.PriceID, tpf.Length, tpf.FormType, te.Name ORDER BY te.PriceID".format(
                 filter_tpp
             )
         )
@@ -50,7 +50,7 @@ class Profile:
             "SELECT te.PriceID, ROUND(Sum(([tpf].[Length]+{1})*[te].[Count])/1000, 2) AS Length "
             "FROM TProfiles AS tpf INNER JOIN TElems AS te ON tpf.UnitPos = te.UnitPos "
             "WHERE (((Exists (SELECT te.UnitPos FROM TElems AS te, TLongs AS tl "
-            "WHERE te.ParentPos=tl.UnitPos AND te.UnitPos=tpf.UnitPos))=False)){0} "
+            "WHERE te.ParentPos=tl.UnitPos AND te.UnitPos=tpf.UnitPos))=False)) AND te.PriceID>0 {0} "
             "GROUP BY te.PriceID, tpf.ColorID".format(filter_tpp, thick)
         )
         res = self.db.rs(sql)
