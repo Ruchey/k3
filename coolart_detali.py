@@ -218,11 +218,7 @@ class Report:
         self.xl.style_to_range("A{0}:L{1}".format(row1, row), "Шапка 1")
         self.xl.formatting(row1, 1, ha="c", va="cccccccccccc")
         self.xl.formatting(
-            row1,
-            3,
-            r=[
-                90,
-            ],
+            row1, 3, r=[90,],
         )
         for imat in mat:
             pans = self.list_pan(imat.priceid, tpp)

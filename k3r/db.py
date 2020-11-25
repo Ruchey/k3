@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import pypyodbc
 
+
 __author__ = "Виноградов А.Г. г.Белгород  август 2015"
 
 

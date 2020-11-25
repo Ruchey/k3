@@ -5,7 +5,7 @@ from collections import namedtuple
 from functools import lru_cache
 from . import utils
 
-__author__ = 'Виноградов А.Г. г.Белгород  август 2015'
+__author__ = "Виноградов А.Г. г.Белгород  август 2015"
 
 
 class Long:
@@ -22,12 +22,16 @@ class Long:
         1 - дуга по хорде
         2 - два отрезка и дуга
         """
-        sql = "SELECT tl.LongTable, te.UnitPos FROM TLongs AS tl LEFT JOIN TElems AS te " \
-              "ON tl.UnitPos = te.ParentPos WHERE tl.UnitPos={}".format(up)
+        sql = (
+            "SELECT tl.LongTable, te.UnitPos FROM TLongs AS tl LEFT JOIN TElems AS te "
+            "ON tl.UnitPos = te.ParentPos WHERE tl.UnitPos={}".format(up)
+        )
         res = self.db.rs(sql)
         table = res[0][0]
         unit_pos = res[0][1] if res[0][1] else up
-        sql = "SELECT FormType FROM {0} AS tb WHERE tb.UnitPos={1}".format(table, unit_pos)
+        sql = "SELECT FormType FROM {0} AS tb WHERE tb.UnitPos={1}".format(
+            table, unit_pos
+        )
         res = self.db.rs(sql)
         if res:
             return res[0][0]
@@ -51,23 +55,36 @@ class Long:
             6	Нижний профиль
             7	Балюстрада
         """
-        keys = ('type', 'priceid', 'goodsid', 'length', 'width', 'height', 'cnt', 'form')
-        gr_keys = ('type', 'priceid', 'goodsid', 'length', 'width', 'height', 'form')
+        keys = (
+            "type",
+            "priceid",
+            "goodsid",
+            "length",
+            "width",
+            "height",
+            "cnt",
+            "form",
+        )
+        gr_keys = ("type", "priceid", "goodsid", "length", "width", "height", "form")
         filter_lt = "WHERE LongType={}".format(lt) if not lt is None else ""
         pref = " AND" if lt else "WHERE"
         filter_tpp = "{} te.TopParentPos={}".format(pref, tpp) if tpp else ""
-        sql = "SELECT tl.UnitPos, tl.LongType AS lt, te.PriceID, tl.LongGoodsID, " \
-              "te.XUnit, te.YUnit, te.ZUnit, te.Count FROM TLongs AS tl INNER JOIN TElems AS te " \
-              "ON tl.UnitPos = te.UnitPos {} ORDER BY tl.LongType".format(filter_lt + filter_tpp)
+        sql = (
+            "SELECT tl.UnitPos, tl.LongType AS lt, te.PriceID, tl.LongGoodsID, "
+            "te.XUnit, te.YUnit, te.ZUnit, te.Count FROM TLongs AS tl INNER JOIN TElems AS te "
+            "ON tl.UnitPos = te.UnitPos {} ORDER BY tl.LongType".format(
+                filter_lt + filter_tpp
+            )
+        )
         res = self.db.rs(sql)
         d_res = []
         for i in res:
-            long = namedtuple('Long', keys)
+            long = namedtuple("Long", keys)
             i += (self.form(i[0]),)
             i_lst = list(i)
             i_lst.pop(0)
             d_res.append(long(*i_lst))
-        gr_lst = utils.group_by_keys(d_res, gr_keys, 'cnt')
+        gr_lst = utils.group_by_keys(d_res, gr_keys, "cnt")
         return gr_lst
 
     @lru_cache(maxsize=6)
@@ -79,7 +96,7 @@ class Long:
         tpp - TopParentPos хозяин
         Вывод: "type", "priceid", "form", 'goodsid', "quantity"
         """
-        keys = ("type", "priceid", "form", 'goodsid', "quantity")
+        keys = ("type", "priceid", "form", "goodsid", "quantity")
         longs = self.long_list(lt, tpp)
         total = []
         gr_longs = {}
@@ -91,7 +108,7 @@ class Long:
         for i in gr_longs:
             form = i[2]
             if form == 0:
-                quantity = sum(length*cnt for length, cnt in gr_longs[i])
+                quantity = sum(length * cnt for length, cnt in gr_longs[i])
             else:
                 quantity = sum(cnt for length, cnt in gr_longs[i])
             total_long = namedtuple("TLong", keys)

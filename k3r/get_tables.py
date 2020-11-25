@@ -27,7 +27,7 @@ class Specific:
         for i in mat_id:
             prop = self.nm.properties(i)
             sqm = self.nm.sqm(i, tpp)
-            obj = k3r.utils.tuple_append(prop, {'sqm': sqm}, 'Sheets')
+            obj = k3r.utils.tuple_append(prop, {"sqm": sqm}, "Sheets")
             sh.append(obj)
         if sh:
             sh.sort(key=lambda x: [int(x.mattypeid), int(x.thickness)], reverse=True)
@@ -46,7 +46,7 @@ class Specific:
         for i in mat_id:
             prop = self.nm.properties(i)
             sqm = self.nm.sqm(i, tpp)
-            obj = k3r.utils.tuple_append(prop, {'sqm': sqm}, 'Sheets')
+            obj = k3r.utils.tuple_append(prop, {"sqm": sqm}, "Sheets")
             sh.append(obj)
         if sh:
             sh.sort(key=lambda x: [int(x.mattypeid), int(x.thickness)], reverse=True)
@@ -63,7 +63,7 @@ class Specific:
         acc = []
         for i in acc_list:
             prop = self.nm.properties(i.priceid)
-            obj = k3r.utils.tuple_append(prop, {'cnt': i.cnt}, 'Acc')
+            obj = k3r.utils.tuple_append(prop, {"cnt": i.cnt}, "Acc")
             acc.append(obj)
             acc.sort(key=lambda x: [x.name, x.unitsid])
             try:
@@ -84,7 +84,7 @@ class Specific:
         acc = []
         for i in acc_list:
             prop = self.nm.properties(i.priceid)
-            obj = k3r.utils.tuple_append(prop, {'len': i.len, 'cnt': i.cnt}, 'Acc')
+            obj = k3r.utils.tuple_append(prop, {"len": i.len, "cnt": i.cnt}, "Acc")
             acc.append(obj)
         return acc
 
@@ -102,7 +102,7 @@ class Specific:
         t_bands = []
         for i in bands:
             prop = self.nm.properties(i.priceid)
-            obj = k3r.utils.tuple_append(prop, {'len': i.len, 'thick': i.thick})
+            obj = k3r.utils.tuple_append(prop, {"len": i.len, "thick": i.thick})
             t_bands.append(obj)
         return t_bands
 
@@ -119,9 +119,18 @@ class Specific:
         prof = []
         for i in pf_list:
             prop = self.nm.properties(i.priceid)
-            notcutpc = getattr(prop, 'notcutpc', 0)
-            obj = k3r.utils.tuple_append(prop, {'len': i.len, 'formtype': i.formtype, 'notcutpc': notcutpc,
-                                                'cnt': i.cnt, 'elemname': i.elemname}, 'Prof')
+            notcutpc = getattr(prop, "notcutpc", 0)
+            obj = k3r.utils.tuple_append(
+                prop,
+                {
+                    "len": i.len,
+                    "formtype": i.formtype,
+                    "notcutpc": notcutpc,
+                    "cnt": i.cnt,
+                    "elemname": i.elemname,
+                },
+                "Prof",
+            )
             prof.append(obj)
         return prof
 
@@ -137,10 +146,12 @@ class Specific:
         prof = []
         for i in pr_list:
             prop = self.nm.properties(i.priceid)
-            notcutpc = getattr(prop, 'notcutpc', 0)
-            stepcut = getattr(prop, 'stepcut', 1)
+            notcutpc = getattr(prop, "notcutpc", 0)
+            stepcut = getattr(prop, "stepcut", 1)
             len = math.ceil(i.len / stepcut) * stepcut
-            obj = k3r.utils.tuple_append(prop, {'len': len, 'net_len': i.len, 'notcutpc': notcutpc}, 'Prof')
+            obj = k3r.utils.tuple_append(
+                prop, {"len": len, "net_len": i.len, "notcutpc": notcutpc}, "Prof"
+            )
             prof.append(obj)
         return prof
 
@@ -158,4 +169,3 @@ class Specific:
             7	Балюстрада
         """
         return self.ln.long_list(tpp)
-
