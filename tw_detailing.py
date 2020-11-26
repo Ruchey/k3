@@ -939,6 +939,7 @@ if __name__ == "__main__":
     block_res.value = False
     client.value = False
     joiners.value = False
+    over_percent = 10
 
     ParList = []
     ParList.append(
@@ -989,4 +990,13 @@ if __name__ == "__main__":
     WhatNext = k3.setvar(ParList)
     ParList.clear()
     if int(WhatNext[0]) == 1:
-        make()
+        make(
+            cnt_scrap=cnt_scrap.value,
+            scrap_rate=scrap_rate.value,
+            margin=margin.value,
+            block_res=block_res.value,
+            client=client.value,
+            joiners=joiners.value,
+            pic_dir=pic_dir,
+            over_percent=over_percent,
+        )
