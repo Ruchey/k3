@@ -888,7 +888,7 @@ def make(*args, **kwargs):
         db_file_path,
         cnt_scrap=cnt_scrap,
         scrap_rate=scrap_rate,
-        margin=margin.value,
+        margin=margin,
         block_res=block_res,
         client=client,
         joiners=joiners,
