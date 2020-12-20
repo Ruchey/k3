@@ -38,8 +38,8 @@ class Nomenclature:
             "WHERE {0} GROUP BY ID".format(where)
         )
         sql2 = (
-            "SELECT ta.AccMatID, Count(ta.AccCount) FROM "
-            "(SELECT DISTINCT ta.AccMatID, ta.AccCount FROM (TNNomenclature AS tnn RIGHT JOIN TAccessories AS ta "
+            "SELECT ta.AccMatID, Count(ta.AccType) FROM "
+            "(SELECT DISTINCT ta.AccMatID, ta.AccType FROM (TNNomenclature AS tnn RIGHT JOIN TAccessories AS ta "
             "ON tnn.ID = ta.AccMatID) LEFT JOIN TElems AS te ON ta.UnitPos = te.UnitPos "
             "WHERE {} ) GROUP BY AccMatID".format(where)
         )
