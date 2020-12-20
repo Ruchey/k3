@@ -205,7 +205,7 @@ class Report:
             self.xl.paint_cells(
                 "F{0}:F{1}".format(start_row, self.row - 1), ink="B5B5B5"
             )
-            self.xl.ws.row_dimensions.group(start_row, self.row - 1, hidden=True)
+            self.xl.ws.row_dimensions.group(start_row, self.row - 1, hidden=False)
             self.links_tab_sheets.append(
                 {
                     "head": start_row - 1,
@@ -339,7 +339,7 @@ class Report:
                 self.xl.paint_cells(
                     "G{0}:G{1}".format(start_row, self.row - 1), ink="B5B5B5"
                 )
-            self.xl.ws.row_dimensions.group(start_row, self.row - 1, hidden=True)
+            self.xl.ws.row_dimensions.group(start_row, self.row - 1, hidden=False)
             self.links_tab_profiles.append(
                 {
                     "head": start_row - 1,
@@ -607,7 +607,7 @@ class Report:
                 self.xl.paint_cells(
                     "F{0}:F{1}".format(start_row, self.row - 1), ink="B5B5B5"
                 )
-                self.xl.ws.row_dimensions.group(start_row, self.row - 1, hidden=True)
+                self.xl.ws.row_dimensions.group(start_row, self.row - 1, hidden=False)
 
         wd_links_tab_long = list(filter(lambda x: x["wd"], self.links_tab_long))
         if wd_links_tab_long:
