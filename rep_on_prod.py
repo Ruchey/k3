@@ -15,6 +15,7 @@
 """
 
 import os
+import math
 import k3r
 from collections import namedtuple
 
@@ -85,10 +86,10 @@ class Doc:
     def put_val(self, val):
         self.row = self.xl.put_val(self.row, 1, val)
 
-    def section_heading(self, row, name, style):
+    def section_heading(self, row, name, style, end_col="L"):
         self.row = self.xl.put_val(row, 1, name)
-        self.xl.ws.merge_cells("A{0}:L{0}".format(row))
-        self.xl.style_to_range("A{0}:L{0}".format(row), style)
+        self.xl.ws.merge_cells("A{0}:{1}{0}".format(row, end_col))
+        self.xl.style_to_range("A{0}:{1}{0}".format(row, end_col), style)
 
     def header(self, val_1, val_2, tab=None):
         self.xl.put_val(self.row, 1, val_1[0].upper() + "    ")
@@ -105,32 +106,65 @@ class Doc:
                 "A{0}:E{1}".format(self.row, self.row + tab), "Таблица 1"
             )
 
-    def det_heading(self, row):
+    def det_heading(self, row, billet=False):
         val = (
             "№",
             "Наименование",
-            "Д-на (X)",
-            "Ш-на (Y)",
-            "Кром. X1 X2",
+            "Деталь",
             "",
-            "Кром. Y1 Y2",
+            "Кромка",
+            "",
+            "",
             "",
             "Паз X-отст. Y-отст.",
-            "Торец",
-            "Чер.",
+            "Т",
+            "Ч",
             "шт",
         )
-        self.xl.put_val(row, 1, val)
-        self.xl.ws.merge_cells("E{0}:F{0}".format(row))
-        self.xl.ws.merge_cells("G{0}:H{0}".format(row))
-        self.xl.style_to_range("A{0}:L{0}".format(row), "Заголовок 3")
-        self.xl.formatting(self.row, 1, ha="cccccccccccc", va="c", wrap="t")
-        self.row += 1
+        val2 = ("X", "Y", "X1", "X2", "Y1", "Y2")
+        val_billet = (
+            "№",
+            "Наименование",
+            "Заготовка",
+            "",
+            "Деталь",
+            "",
+            "Кромка",
+            "",
+            "",
+            "",
+            "Паз X-отст. Y-отст.",
+            "Т",
+            "Ч",
+            "шт",
+        )
+        val2_billet = ("X", "Y", "X", "Y", "X1", "X2", "Y1", "Y2")
+        if billet:
+            self.xl.put_val(row, 1, val_billet)
+            self.xl.put_val(row+1, 3, val2_billet)
+            self.xl.ws.merge_cells("C{0}:D{0}".format(row))
+            self.xl.ws.merge_cells("E{0}:F{0}".format(row))
+            self.xl.ws.merge_cells("G{0}:J{0}".format(row))
+            self.xl.style_to_range("A{0}:N{1}".format(row, row+1), "Заголовок 3")
+            self.xl.formatting(self.row, 1, ha="cccccccccccccc", va="c", wrap="t")
+            self.xl.formatting(self.row+1, 1, ha="cccccccccccccc", va="c", wrap="t")
+        else:
+            self.xl.put_val(row, 1, val)
+            self.xl.put_val(row+1, 3, val2)
+            self.xl.ws.merge_cells("C{0}:D{0}".format(row))
+            self.xl.ws.merge_cells("E{0}:H{0}".format(row))
+            self.xl.style_to_range("A{0}:L{1}".format(row, row+1), "Заголовок 3")
+            self.xl.formatting(self.row, 1, ha="cccccccccccc", va="c", wrap="t")
+            self.xl.formatting(self.row+1, 1, ha="cccccccccccc", va="c", wrap="t")
 
-    def get_pans(self, pans, tpp=None):
+        self.row += 2
+
+    def get_pans(self, pans, tpp=None, fugue=1):
         keys = (
             "cpos",
             "name",
+            "plane_length",
+            "plane_width",
             "length",
             "width",
             "cnt",
@@ -151,6 +185,8 @@ class Doc:
             pdir = self.pn.dir(id_pan)
             p_cpos = telems.commonpos
             name = telems.name
+            plane_length = self.pn.planelength(id_pan, fugue)
+            plane_width = self.pn.planewidth(id_pan, fugue)
             p_length = self.pn.length(id_pan)
             p_width = self.pn.width(id_pan)
             if self.pn.form(id_pan) > 0:
@@ -194,6 +230,8 @@ class Doc:
             pans = Pans(
                 p_cpos,
                 p_name,
+                plane_length,
+                plane_width,
                 p_length,
                 p_width,
                 p_cnt,
@@ -236,10 +274,12 @@ class Product:
     Входная функция make(tpp). tpp - TopParentPos это id изделия
     """
 
-    def __init__(self, doc):
+    def __init__(self, doc, **kwargs):
         self.doc = doc
         self.doc.row = 1
         self.tpp = None
+        self.billet = kwargs.get("billet", False)
+        self.end_col = "L" if not self.billet else "N"
 
     def make(self, tpp):
         self.tpp = tpp
@@ -253,13 +293,15 @@ class Product:
             sheet_name = "верх_{}".format(self.tpp)
             color = "FCDABC"
         self.doc.new_sheet(sheet_name, tab_color=color)
-        cs = [4.86, 33, 7, 7, 2.71, 2.71, 2.71, 2.71, 10.14, 6, 6, 4.29]
+        column_size = [5.29, 43.14, 7, 7, 2.71, 2.71, 2.71, 2.71, 10, 1.29, 1.29, 4.29]
+        column_size_billet = [4.86, 33, 4.57, 4.57, 2.71, 2.71, 2.71, 2.71, 10, 1.29, 1.29, 4.29]
+        cs = column_size_billet if self.billet else column_size
         self.doc.xl.col_size(1, cs)
         gab = "в{0} ш{1} г{2}".format(int(te.zunit), int(te.xunit), int(te.yunit))
         cnt = "-- {}шт".format(te.count)
         name = " ".join([te.name, gab, cnt])
         self.doc.put_val(name)
-        self.doc.xl.ws.merge_cells("A{0}:L{0}".format(self.doc.row - 1))
+        self.doc.xl.ws.merge_cells("A{0}:{1}{0}".format(self.doc.row - 1, self.end_col))
         self.doc.xl.formatting(
             self.doc.row - 1, 1, ha="c", va="c", wrap="f", sz=14, bld="t"
         )
@@ -292,15 +334,15 @@ class Product:
                 group.sort(key=lambda x: x.thickness, reverse=True)
         bands_abc = self.doc.nm.bands_abc(self.tpp)
         if bands_abc:
-            self.doc.section_heading(self.doc.row, "Расшифровка кромки", "Заголовок 6")
+            self.doc.section_heading(self.doc.row, "Расшифровка кромки", "Заголовок 6", end_col=self.end_col)
             self.doc.xl.style_to_range(
-                "A{0}:L{1}".format(self.doc.row, self.doc.row + len(bands_abc) - 1),
+                "A{0}:{2}{1}".format(self.doc.row, self.doc.row + len(bands_abc) - 1, self.end_col),
                 "Линейка 1",
             )
             for i in bands_abc:
                 val = (bands_abc[i], i)
                 self.doc.put_val(val)
-        self.doc.det_heading(self.doc.row)
+        self.doc.det_heading(self.doc.row, billet=self.billet)
         style = ["Заголовок 62", "Заголовок 52"]
         for idx, mat_gr in enumerate([dsp, mdf]):
             for mat in mat_gr:
@@ -324,93 +366,44 @@ class Product:
                 if not l_pans:
                     continue
                 pans = self.doc.get_pans(l_pans)
-                self.doc.section_heading(self.doc.row, mat.name, style[idx])
+                self.doc.section_heading(self.doc.row, mat.name, style[idx], end_col=self.end_col)
                 self.doc.xl.style_to_range(
-                    "A{0}:L{1}".format(self.doc.row, self.doc.row + len(pans) - 1),
+                    "A{0}:{2}{1}".format(self.doc.row, self.doc.row + len(pans) - 1, self.end_col),
                     "Таблица 1",
                 )
                 for p in pans:
-                    val = (
-                        p.cpos,
-                        p.name,
-                        p.length,
-                        p.width,
-                        p.band_x1,
-                        p.band_x2,
-                        p.band_y1,
-                        p.band_y2,
-                        p.slots,
-                        p.butts,
-                        p.draw,
-                        p.cnt,
-                    )
-                    self.doc.put_val(val)
-                    self.doc.xl.formatting(
-                        self.doc.row - 1,
-                        1,
-                        ha="llrrcccccccc",
-                        va="c",
-                        wrap="fffffffftf",
-                    )
-                    self.doc.xl.paint_cells(
-                        "C{}".format(self.doc.row - 1), fill="DCE6F1"
-                    )
-                    self.doc.xl.paint_cells(
-                        "E{0}:F{0}".format(self.doc.row - 1), fill="DCE6F1"
-                    )
-                self.doc.xl.row_size(self.doc.row, tb_space)
-                self.doc.row += 1
-        style = ["Заголовок 32", "Заголовок 42", "Заголовок 42"]
-        for idx, mat_gr in enumerate([hdf, gls, rest]):
-            for mat in mat_gr:
-                l_pans = self.doc.pn.list_panels(mat.priceid, self.tpp)
-                pans = self.doc.get_pans(l_pans)
-                self.doc.section_heading(self.doc.row, mat.name, style[idx])
-                self.doc.xl.style_to_range(
-                    "A{0}:L{1}".format(self.doc.row, self.doc.row + len(pans) - 1),
-                    "Таблица 1",
-                )
-                for p in pans:
-                    val = (
-                        p.cpos,
-                        p.name,
-                        p.length,
-                        p.width,
-                        p.band_x1,
-                        p.band_x2,
-                        p.band_y1,
-                        p.band_y2,
-                        p.slots,
-                        p.butts,
-                        p.draw,
-                        p.cnt,
-                    )
-                    self.doc.put_val(val)
-                    self.doc.xl.formatting(
-                        self.doc.row - 1,
-                        1,
-                        ha="llrrcccccccc",
-                        va="c",
-                        wrap="fffffffftf",
-                    )
-                self.doc.xl.row_size(self.doc.row, tb_space)
-                self.doc.row += 1
-        if fcd:
-            self.doc.section_heading(self.doc.row, "Фасады", "Заголовок 1")
-            self.doc.xl.formatting(self.doc.row - 1, 1, ha="l", va="c", sz=14, b="t")
-            for i in fcd:
-                mat = self.doc.nm.properties(i)
-                l_pans = fcd[i]
-                pans = self.doc.get_pans(l_pans)
-                gr_pans = k3r.utils.group_by_keys(pans, ("decor", "mill"))
-                for gr in gr_pans:
-                    name = " ".join([mat.name, gr[0].decor, gr[0].mill])
-                    self.doc.section_heading(self.doc.row, name, "Заголовок 42")
-                    self.doc.xl.style_to_range(
-                        "A{0}:L{1}".format(self.doc.row, self.doc.row + len(gr) - 1),
-                        "Таблица 1",
-                    )
-                    for p in gr:
+                    if self.billet:
+                        val = (
+                            p.cpos,
+                            p.name,
+                            p.plane_length,
+                            p.plane_width,
+                            p.length,
+                            p.width,
+                            p.band_x1,
+                            p.band_x2,
+                            p.band_y1,
+                            p.band_y2,
+                            p.slots,
+                            p.butts,
+                            p.draw,
+                            p.cnt,
+                        )
+                        self.doc.put_val(val)
+                        self.doc.xl.formatting(
+                            self.doc.row - 1,
+                            1,
+                            ha="llrrrrcccccccc",
+                            va="c",
+                            wrap="tffffffffftfff",
+                        )
+                        self.doc.xl.paint_cells(
+                            "E{}".format(self.doc.row - 1), fill="DCE6F1"
+                        )
+                        self.doc.xl.paint_cells(
+                            "G{0}:H{0}".format(self.doc.row - 1), fill="DCE6F1"
+                        )
+                    else:
                         val = (
                             p.cpos,
                             p.name,
@@ -431,8 +424,141 @@ class Product:
                             1,
                             ha="llrrcccccccc",
                             va="c",
-                            wrap="fffffffftf",
+                            wrap="tffffffftfff",
+                            )
+                        self.doc.xl.paint_cells(
+                            "C{}".format(self.doc.row - 1), fill="DCE6F1"
                         )
+                        self.doc.xl.paint_cells(
+                            "E{0}:F{0}".format(self.doc.row - 1), fill="DCE6F1"
+                        )
+                self.doc.xl.row_size(self.doc.row, tb_space)
+                self.doc.row += 1
+        style = ["Заголовок 32", "Заголовок 42", "Заголовок 42"]
+        for idx, mat_gr in enumerate([hdf, gls, rest]):
+            for mat in mat_gr:
+                l_pans = self.doc.pn.list_panels(mat.priceid, self.tpp)
+                pans = self.doc.get_pans(l_pans)
+                self.doc.section_heading(self.doc.row, mat.name, style[idx], end_col=self.end_col)
+                self.doc.xl.style_to_range(
+                    "A{0}:{2}{1}".format(self.doc.row, self.doc.row + len(pans) - 1, self.end_col),
+                    "Таблица 1",
+                )
+                for p in pans:
+                    if self.billet:
+                        val = (
+                            p.cpos,
+                            p.name,
+                            "",
+                            "",
+                            p.length,
+                            p.width,
+                            p.band_x1,
+                            p.band_x2,
+                            p.band_y1,
+                            p.band_y2,
+                            p.slots,
+                            p.butts,
+                            p.draw,
+                            p.cnt,
+                        )
+                        self.doc.put_val(val)
+                        self.doc.xl.formatting(
+                            self.doc.row - 1,
+                            1,
+                            ha="llrrcccccccccc",
+                            va="c",
+                            wrap="fffffffftfff",
+                        )
+                    else:
+                        val = (
+                            p.cpos,
+                            p.name,
+                            p.length,
+                            p.width,
+                            p.band_x1,
+                            p.band_x2,
+                            p.band_y1,
+                            p.band_y2,
+                            p.slots,
+                            p.butts,
+                            p.draw,
+                            p.cnt,
+                        )
+                        self.doc.put_val(val)
+                        self.doc.xl.formatting(
+                            self.doc.row - 1,
+                            1,
+                            ha="llrrcccccccc",
+                            va="c",
+                            wrap="fffffftfff",
+                            )
+                self.doc.xl.row_size(self.doc.row, tb_space)
+                self.doc.row += 1
+        if fcd:
+            self.doc.section_heading(self.doc.row, "Фасады", "Заголовок 1", end_col=self.end_col)
+            self.doc.xl.formatting(self.doc.row - 1, 1, ha="l", va="c", sz=14, b="t")
+            for i in fcd:
+                mat = self.doc.nm.properties(i)
+                l_pans = fcd[i]
+                pans = self.doc.get_pans(l_pans)
+                gr_pans = k3r.utils.group_by_keys(pans, ("decor", "mill"))
+                for gr in gr_pans:
+                    name = " ".join([mat.name, gr[0].decor, gr[0].mill])
+                    self.doc.section_heading(self.doc.row, name, "Заголовок 42", end_col=self.end_col)
+                    self.doc.xl.style_to_range(
+                        "A{0}:{2}{1}".format(self.doc.row, self.doc.row + len(gr) - 1, self.end_col),
+                        "Таблица 1",
+                    )
+                    for p in gr:
+                        if self.billet:
+                            val = (
+                                p.cpos,
+                                p.name,
+                                "",
+                                "",
+                                p.length,
+                                p.width,
+                                p.band_x1,
+                                p.band_x2,
+                                p.band_y1,
+                                p.band_y2,
+                                p.slots,
+                                p.butts,
+                                p.draw,
+                                p.cnt,
+                            )
+                            self.doc.put_val(val)
+                            self.doc.xl.formatting(
+                                self.doc.row - 1,
+                                1,
+                                ha="llrrcccccccccc",
+                                va="c",
+                                wrap="fffffffftfff",
+                            )
+                        else:
+                            val = (
+                                p.cpos,
+                                p.name,
+                                p.length,
+                                p.width,
+                                p.band_x1,
+                                p.band_x2,
+                                p.band_y1,
+                                p.band_y2,
+                                p.slots,
+                                p.butts,
+                                p.draw,
+                                p.cnt,
+                            )
+                            self.doc.put_val(val)
+                            self.doc.xl.formatting(
+                                self.doc.row - 1,
+                                1,
+                                ha="llrrcccccccc",
+                                va="c",
+                                wrap="fffffftfff",
+                                )
             self.doc.xl.row_size(self.doc.row, tb_space)
             self.doc.row += 1
         facades = self.doc.bs.get_child_furntype(self.tpp, "50")
@@ -442,10 +568,10 @@ class Product:
                 if self.doc.bs.get_child_furntype(fc[0], "62", top=0):
                     fcd_ram.append(fc)
         if fcd_ram:
-            self.doc.section_heading(self.doc.row, "Фасады рамочные", "Заголовок 1")
+            self.doc.section_heading(self.doc.row, "Фасады рамочные", "Заголовок 1", end_col=self.end_col)
             self.doc.xl.formatting(self.doc.row - 1, 1, ha="l", va="c", sz=14, b="t")
             self.doc.xl.style_to_range(
-                "A{0}:L{1}".format(self.doc.row, self.doc.row + len(fcd_ram) - 1),
+                "A{0}:{2}{1}".format(self.doc.row, self.doc.row + len(fcd_ram) - 1, self.end_col),
                 "Таблица 1",
             )
             for i in fcd_ram:
@@ -465,20 +591,24 @@ class Product:
 
 
 class Detailing:
-    def __init__(self, doc):
+    def __init__(self, doc, **kwargs):
         self.doc = doc
         self.doc.row = 1
+        self.billet = kwargs.get("billet", False)
+        self.end_col = "L" if not self.billet else "N"
 
     def make(self):
         self.doc.new_sheet("Деталировка", tab_color="595959")
-        cs = [4.86, 33, 7, 7, 2.71, 2.71, 2.71, 2.71, 10.14, 6, 6, 4.29]
+        column_size = [5.29, 43.14, 7, 7, 2.71, 2.71, 2.71, 2.71, 10, 1.29, 1.29, 4.29]
+        column_size_billet = [4.86, 32.57, 6.29, 6.29, 6.29, 6.29, 2.71, 2.71, 2.71, 2.71, 10, 1.29, 1.29, 3.29]
+        cs = column_size_billet if self.billet else column_size
         self.doc.xl.col_size(1, cs)
         self.detailing()
 
     def detailing(self):
-        pr = Product(self.doc)
+        product = Product(self.doc, billet=self.billet)
         self.doc.cap()
-        pr.sheets()
+        product.sheets()
 
 
 class Specification:
@@ -491,8 +621,8 @@ class Specification:
         self.tpp = tpp
         self.doc.cap()
         self.doc.new_sheet("Спецификация", tab_color="FFFF00")
-        cs = [53, 12.71, 12, 6.86, 6]
-        self.doc.xl.col_size(1, cs)
+        column_size = [58, 12.71, 12, 6.86, 6]
+        self.doc.xl.col_size(1, column_size)
         self.sheets()
         self.glass()
         self.bands()
@@ -504,15 +634,16 @@ class Specification:
         if not sh:
             return
         val_1 = ("Листовой материал", "Заголовок 32")
-        val_2 = (("Материал панелей", "Артикул", "Формат", "кв.м", "кг"), "Заголовок 1")
+        val_2 = (("Материал панелей", "Артикул", "Формат", "кв.м", "листов"), "Заголовок 1")
         self.doc.header(val_1, val_2, len(sh) - 1)
         for i in sh:
-            density = getattr(i, "density", 0)
+            #density = getattr(i, "density", 0)
             gabx = int(getattr(i, "gabx", 0))
             gaby = int(getattr(i, "gaby", 0))
-            weight = round(i.sqm * density * (i.thickness / 1000), 1)
-            sh_sz = "{0}x{1}x{2}".format(gabx, gaby, int(i.thickness))
-            val = (i.name, i.article, sh_sz, i.sqm, weight)
+            #weight = round(i.sqm * density * (i.thickness / 1000), 1)
+            sheet_size = "{0}x{1}x{2}".format(gabx, gaby, int(i.thickness))
+            number_sheets = round((i.sqm * i.wastecoeff) / (gabx * gaby / 1000000), 1)
+            val = (i.name, i.article, sheet_size, i.sqm, number_sheets)
             self.doc.put_val(val)
             self.doc.xl.formatting(self.doc.row - 1, 1, ha="lrrrr", va="c")
         self.doc.xl.row_size(self.doc.row, 8)
@@ -548,7 +679,7 @@ class Specification:
                 self.doc.xl.formatting(self.doc.row - 1, 1, ha="lrrcr", va="c")
 
     def bands(self):
-        bnd = self.doc.gt.t_bands(tpp=self.tpp)
+        bnd = self.doc.gt.t_bands(tpp=self.tpp, by_thick=False)
         if not bnd:
             return
         val_1 = ("Кромочный материал", "Заголовок 42")
@@ -560,7 +691,7 @@ class Specification:
         bands_abc = self.doc.nm.bands_abc(self.tpp)
         for i in bnd:
             name = "{0} | {1}".format(bands_abc[i.name], i.name)
-            val = (name, i.article, "", "", round(i.len, 1))
+            val = (name, i.article, "", "", math.ceil(i.len * i.wastecoeff))
             self.doc.put_val(val)
             self.doc.xl.ws.merge_cells("B{0}:D{0}".format(self.doc.row - 1))
             self.doc.xl.formatting(self.doc.row - 1, 1, ha="lcccr", va="c")
@@ -575,7 +706,7 @@ class Specification:
         val_2 = (("Наименование профиля", "", "Артикул", "", "п/м"), "Заголовок 1")
         self.doc.header(val_1, val_2, len(pf) - 1)
         for i in pf:
-            val = (i.name, "", i.article, "", round(i.net_len, 1))
+            val = (i.name, "", i.article, "", round(i.len, 2))
             self.doc.put_val(val)
             self.doc.xl.ws.merge_cells("A{0}:B{0}".format(self.doc.row - 1))
             self.doc.xl.ws.merge_cells("C{0}:D{0}".format(self.doc.row - 1))
@@ -640,7 +771,7 @@ class Profiles:
         self.doc.header(val_1, val_2, 0)
         self.doc.xl.ws.merge_cells("C{0}:D{0}".format(self.doc.row - 1))
         for i in total_pf:
-            val = (i.name, "", i.article, "", i.len)
+            val = (i.name, "", i.article, "", i.net_len)
             self.doc.put_val(val)
             self.doc.xl.style_to_range(
                 "A{0}:E{0}".format(self.doc.row - 1), "Заголовок 1"
@@ -671,7 +802,7 @@ class Profiles:
                         1,
                         ha="llrrr",
                         va="c",
-                        nf=("-- @", "@", "#мм", "#шт"),
+                        nf=("-- @", "@", "# мм", "# шт"),
                     )
                     self.doc.xl.paint_cells(
                         "A{0}".format(self.doc.row - 1), ink="808080"
@@ -699,32 +830,36 @@ class Facades:
 
 
 class Report:
-    def __init__(self, db):
-        self.doc = Doc(db)
+    def __init__(self, db_path):
+        self.db = k3r.db.DB(db_path)
+        self.doc = Doc(self.db)
+
+    def __del__(self):
+        print("Закрываем соединение с базой отчёта")
+        self.db.close()
 
     def make(self):
-        det = Detailing(self.doc)
-        # det.make()
-        sp = Specification(self.doc)
-        # sp.make()
-        pf = Profiles(self.doc)
-        pf.make()
-        prod = Product(self.doc)
+        detailing = Detailing(self.doc, billet=True)
+        detailing.make()
+        specification = Specification(self.doc)
+        specification.make()
+        profiles = Profiles(self.doc)
+        profiles.make()
+        product = Product(self.doc)
         objects = self.doc.bs.tobjects()
         objects.sort(key=lambda x: x.placetype)
-        # for obj in objects:
-        #     prod.make(obj.unitpos)
+        for obj in objects:
+            product.make(obj.unitpos)
 
     def save(self, file):
         self.doc.xl.save(file)
 
 
 def start(file_db, pr_path, name):
-    # Подключаемся к базе выгрузки
-    db = k3r.db.DB(file_db)
-    rep = Report(db)
+    if os.path.exists(file_db) == False:
+        return False
+    rep = Report(file_db)
     rep.make()
-    db.close()
     file = os.path.join(pr_path, "{}.xlsx".format(name))
     rep.save(file)
     os.startfile(file)

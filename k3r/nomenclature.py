@@ -166,9 +166,9 @@ class Nomenclature:
         if res:
             res_keys = dict(res).keys()
             if "wastecoeff" not in res_keys:
-                res.append(("wastecoeff", None))
+                res.append(("wastecoeff", 1))
             if "pricecoeff" not in res_keys:
-                res.append(("pricecoeff", None))
+                res.append(("pricecoeff", 1))
             Prop = namedtuple("Prop", [x[0] for x in res])
             return Prop(**dict(res))
         else:
@@ -254,23 +254,36 @@ class Nomenclature:
                     cnt = self.sqm(mat_id, tpp)
         return cnt
 
-    def bands(self, add=0, tpp=None):
+    def bands(self, add=0, tpp=None, by_thick=True):
         """Информация по кромке.
         Входные данные:
         add - добавочная длина кромки в мм на торец для отходов
         tpp - ID хозяина кромки
+        by_thick - разделять по толщине торца
         Выходные данные:
         priceid - ID материала
         len - длина
         thick - толщина торца
         """
         filter_tpp = "WHERE te.TopParentPos={}".format(tpp) if tpp else ""
-        keys = ("len", "thick", "priceid")
-        sql = (
+        keys_by_thick = ("len", "thick", "priceid")
+        sql_by_thick = (
             "SELECT Round(Sum((tb.Length+{0})*(te.Count))/10^3, 2), tb.Width, te.PriceID "
             "FROM TBands AS tb INNER JOIN TElems AS te ON tb.UnitPos = te.UnitPos {1} "
             "GROUP BY tb.Width, te.PriceID".format(add, filter_tpp)
         )
+        keys_not_thick = ("len", "priceid")
+        sql_not_thick = (
+            "SELECT Round(Sum((tb.Length+{0})*(te.Count))/10^3, 2), te.PriceID "
+            "FROM TBands AS tb INNER JOIN TElems AS te ON tb.UnitPos = te.UnitPos {1} "
+            "GROUP BY te.PriceID".format(add, filter_tpp)
+        )
+        if by_thick:
+            sql = sql_by_thick
+            keys = keys_by_thick
+        else:
+            sql = sql_not_thick
+            keys = keys_not_thick
         res = self.db.rs(sql)
         l_res = []
         if res:

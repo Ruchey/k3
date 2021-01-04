@@ -64,12 +64,10 @@ class Specific:
         for i in acc_list:
             prop = self.nm.properties(i.priceid)
             obj = k3r.utils.tuple_append(prop, {"cnt": i.cnt}, "Acc")
+            if not hasattr(obj, "supplier"):
+                obj = k3r.utils.tuple_append(obj, {"supplier": ""}, "Acc")
             acc.append(obj)
-            acc.sort(key=lambda x: [x.name, x.unitsid])
-            try:
-                acc.sort(key=lambda x: x.supplier)
-            except:
-                pass
+        acc.sort(key=lambda x: [x.supplier, x.name, x.unitsid])
         return acc
 
     def t_acc_long(self, tpp=None):
@@ -88,21 +86,25 @@ class Specific:
             acc.append(obj)
         return acc
 
-    def t_bands(self, add=0, tpp=None):
+    def t_bands(self, add=0, tpp=None, by_thick=True):
         """Таблица кромок
         Входные данные:
            add - добавочная длина кромки в мм на торец для отходов
            tpp - ID хозяина кромки
+           by_thick - разделять по толщине торца
        Выходные данные:
            len - длина
            thick - толщина торца
            ... - набор свойств присущих номенклатурному материалу
         """
-        bands = self.nm.bands(add, tpp)
+        bands = self.nm.bands(add, tpp, by_thick)
         t_bands = []
         for i in bands:
             prop = self.nm.properties(i.priceid)
-            obj = k3r.utils.tuple_append(prop, {"len": i.len, "thick": i.thick})
+            if by_thick:
+                obj = k3r.utils.tuple_append(prop, {"len": i.len, "thick": i.thick})
+            else:
+                obj = k3r.utils.tuple_append(prop, {"len": i.len})
             t_bands.append(obj)
         return t_bands
 

@@ -100,23 +100,37 @@ class Panel:
         else:
             return 0
 
-    def planelength(self, unitpos):
-        """Длина панели без кромки"""
+    def planelength(self, unitpos, fugue=0):
+        """Длина панели без кромки
+        unitpos - int уникальный номер панели
+        fugue - int|float размер прифуговки на торец с кромкой (default 0)
+        Если панели с таким номером нет, вернёт ноль.
+        """
 
         sql = "SELECT planelength FROM TPanels WHERE unitpos = {}".format(unitpos)
         res = self.db.rs(sql)
         if res:
-            return utils.float_int(res[0][0])
+            band_y1 = self.band_y1(unitpos)
+            band_y2 = self.band_y2(unitpos)
+            add_size = (int(bool(band_y1.id)) + int(bool(band_y2.id))) * fugue
+            return utils.float_int(res[0][0]+add_size)
         else:
             return 0
 
-    def planewidth(self, unitpos):
-        """Ширина панели без кромки"""
+    def planewidth(self, unitpos, fugue=0):
+        """Ширина панели без кромки
+        unitpos - int уникальный номер панели
+        fugue - int|float размер прифуговки на торец с кромкой (default 0)
+        Если панели с таким номером нет, вернёт ноль.
+        """
 
         sql = "SELECT planewidth FROM TPanels WHERE unitpos = {}".format(unitpos)
         res = self.db.rs(sql)
         if res:
-            return utils.float_int(res[0][0])
+            band_x1 = self.band_x1(unitpos)
+            band_x2 = self.band_x2(unitpos)
+            add_size = (int(bool(band_x1.id)) + int(bool(band_x2.id))) * fugue
+            return utils.float_int(res[0][0]+add_size)
         else:
             return 0
 
@@ -511,6 +525,7 @@ class Panel:
     @lru_cache(maxsize=20)
     def band_side(self, unitpos, IDLine, IDPoly=1):
         """информация о кромке торца
+        Выходные данные:
         id - id кромки из номенклатуры
         name - название кромки
         width - ширина кромки
@@ -521,10 +536,10 @@ class Panel:
         Band = namedtuple(
             "Band", ["id", "name", "width", "thickpan", "thickband", "count"]
         )
-        b_priceID = None  # id кромки в номенклатуре
+        b_price_id = None  # id кромки в номенклатуре
         b_name = None  # название кромки
         b_width = None  # ширина кромки
-        b_thickPan = None  # толщина панели
+        b_thick_pan = None  # толщина панели
         b_thick = None  # толщина кромки
         b_cnt = None
 
@@ -552,29 +567,29 @@ class Panel:
             )
             res = self.db.rs(sql)
             if res:
-                bandID = res[0][0]
-                b_priceID = res[0][1]
+                band_id = res[0][0]
+                b_price_id = res[0][1]
                 b_name = res[0][2]
                 b_cnt = res[0][3]
-                sql = "SELECT Width FROM TBands WHERE UnitPos={}".format(bandID)
+                sql = "SELECT Width FROM TBands WHERE UnitPos={}".format(band_id)
                 res = self.db.rs(sql)
                 if res:
-                    b_thickPan = utils.float_int(res[0][0])
+                    b_thick_pan = utils.float_int(res[0][0])
                 sql = (
                     "SELECT tnpv.DValue FROM TNPropertyValues AS tnpv WHERE tnpv.PropertyID=21 "
-                    "AND tnpv.EntityID={}".format(b_priceID)
+                    "AND tnpv.EntityID={}".format(b_price_id)
                 )
                 res = self.db.rs(sql)
                 if res:
                     b_width = utils.float_int(res[0][0])
                 sql = (
                     "SELECT tnpv.DValue FROM TNPropertyValues AS tnpv WHERE tnpv.PropertyID=10 "
-                    "AND tnpv.EntityID={}".format(b_priceID)
+                    "AND tnpv.EntityID={}".format(b_price_id)
                 )
                 res = self.db.rs(sql)
                 if res:
                     b_thick = utils.float_int(res[0][0])
-        return Band(b_priceID, b_name, b_width, b_thickPan, b_thick, b_cnt)
+        return Band(b_price_id, b_name, b_width, b_thick_pan, b_thick, b_cnt)
 
     def band_b(self, unitpos):
         """информация о кромке торца B"""
