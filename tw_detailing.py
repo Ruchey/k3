@@ -84,7 +84,7 @@ class Report:
         )
         self.xl.ws.merge_cells("A{0}:D{0}".format(row))
 
-    def header(self, cs=(4.57, 47, 5, 5, 6.71, 5.3, 10, 10), pg=1):
+    def header(self, cs=(4.57, 44.14, 5, 5.43, 6.71, 5.3, 10, 12.43), pg=1):
         to = self.bs.torderinfo()
         number = to.ordernumber
         name = to.ordername if to.ordername else ""
@@ -443,7 +443,7 @@ class Report:
                 ha="llllrrrr",
                 va="c",
                 bld="f",
-                nf=("@", "@", "0", "0.0", "0.0", "0.0", self.rub, self.rub),
+                nf=("@", "@", "0", "0.00", "0.00", "0.00", self.rub, self.rub),
             )
         self.sum_mat_cells.append("H{0}:H{1}".format(start_row, end_row))
 
@@ -839,7 +839,7 @@ class Report:
                             self.row, 2, path=pic, align="r", valign="b", cf=0.7, px=6
                         )
                         self.row += 1
-                i += 1
+                    i += 1
 
     def detailing(self):
         """Создаёт основной лист деталировки"""
