@@ -69,7 +69,7 @@ class Doc:
         # Зазор в кол-ве символа добавляемый к ширине столбца
         self.margin = 0.7109375
 
-        self.F_RUB = openpyxl.styles.numbers.BUILTIN_FORMATS[42]
+        self.F_RUB = openpyxl.styles.numbers.BUILTIN_FORMATS[44]
 
     def new_sheet(self, name, tab_color=None):
         """Добавление листа"""
