@@ -7,7 +7,10 @@ __author__ = "Виноградов А.Г. г.Белгород  август 2015
 
 class DB:
     def __init__(self, path_db):
-        self.conn = pypyodbc.win_connect_mdb(path_db)
+        self.path_db = path_db
+
+    def open(self):
+        self.conn = pypyodbc.win_connect_mdb(self.path_db)
         self.cur = self.conn.cursor()
 
     def close(self):
