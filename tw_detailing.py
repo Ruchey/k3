@@ -29,6 +29,7 @@ class Report:
         self.over_percent = kwargs.get("over_percent", 10)
 
         self.db = k3r.db.DB(db_path)
+        self.db.open()
         self.nm = k3r.nomenclature.Nomenclature(self.db)
         self.bs = k3r.base.Base(self.db)
         self.pn = k3r.panel.Panel(self.db)
