@@ -14,19 +14,14 @@
 
 """
 
-import os
 import math
 import k3r
 from collections import namedtuple
-
-DSP = (128,)
-HDF = (37,)
-MDF = (64,)
-GLS = (48, 99)
+from pathlib import Path
 
 
 class Doc:
-    def __init__(self, db):
+    def __init__(self, db, **kwargs):
         self.bs = k3r.base.Base(db)
         self.ln = k3r.long.Long(db)
         self.nm = k3r.nomenclature.Nomenclature(db)
@@ -159,7 +154,12 @@ class Doc:
 
         self.row += 2
 
-    def get_pans(self, pans, tpp=None, fugue=1):
+    def get_pans(self, pans, tpp=None):
+        """Входные данные:
+        pans - писок id панелей
+        tpp - TopParentPos родитель
+        fugue - размер прифуговки для кромления (default 1mm)
+        """
         keys = (
             "cpos",
             "name",
@@ -185,8 +185,8 @@ class Doc:
             pdir = self.pn.dir(id_pan)
             p_cpos = telems.commonpos
             name = telems.name
-            plane_length = self.pn.planelength(id_pan, fugue)
-            plane_width = self.pn.planewidth(id_pan, fugue)
+            plane_length = self.pn.planelength(id_pan, self.fugue)
+            plane_width = self.pn.planewidth(id_pan, self.fugue)
             p_length = self.pn.length(id_pan)
             p_width = self.pn.width(id_pan)
             if self.pn.form(id_pan) > 0:
@@ -275,6 +275,10 @@ class Product:
     """
 
     def __init__(self, doc, **kwargs):
+        """Входные данные:
+        doc - документ
+        billet - заготовка (выводить размеры заготовки)
+        """
         self.doc = doc
         self.doc.row = 1
         self.tpp = None
@@ -283,7 +287,6 @@ class Product:
 
     def make(self, tpp):
         self.tpp = tpp
-        self.doc.cap()
         te = self.doc.bs.telems(self.tpp)
         t_obj = self.doc.bs.tobjects(self.tpp)
         pt = t_obj.placetype
@@ -293,6 +296,7 @@ class Product:
             sheet_name = "верх_{}".format(self.tpp)
             color = "FCDABC"
         self.doc.new_sheet(sheet_name, tab_color=color)
+        self.doc.cap()
         column_size = [5.29, 43.14, 7, 7, 2.71, 2.71, 2.71, 2.71, 10, 1.29, 1.29, 4.29]
         column_size_billet = [4.86, 33, 4.57, 4.57, 2.71, 2.71, 2.71, 2.71, 10, 1.29, 1.29, 4.29]
         cs = column_size_billet if self.billet else column_size
@@ -319,13 +323,13 @@ class Product:
         tb_space = 8
         for i in mat_id:
             prop = self.doc.nm.properties(i)
-            if prop.mattypeid in DSP:
+            if prop.mattypeid in k3r.variables.DSP:
                 dsp.append(prop)
-            elif prop.mattypeid in HDF:
+            elif prop.mattypeid in k3r.variables.HDF:
                 hdf.append(prop)
-            elif prop.mattypeid in MDF:
+            elif prop.mattypeid in k3r.variables.MDF:
                 mdf.append(prop)
-            elif prop.mattypeid in GLS:
+            elif prop.mattypeid in k3r.variables.GLS:
                 gls.append(prop)
             else:
                 rest.append(prop)
@@ -515,8 +519,8 @@ class Product:
                             val = (
                                 p.cpos,
                                 p.name,
-                                "",
-                                "",
+                                p.plane_length,
+                                p.plane_width,
                                 p.length,
                                 p.width,
                                 p.band_x1,
@@ -592,6 +596,10 @@ class Product:
 
 class Detailing:
     def __init__(self, doc, **kwargs):
+        """Входные данные:
+        doc - документ
+        billet - заготовка (выводить размеры заготовки)
+        """
         self.doc = doc
         self.doc.row = 1
         self.billet = kwargs.get("billet", False)
@@ -619,10 +627,10 @@ class Specification:
 
     def make(self, tpp=None):
         self.tpp = tpp
-        self.doc.cap()
         self.doc.new_sheet("Спецификация", tab_color="FFFF00")
         column_size = [58, 12.71, 12, 6.86, 6]
         self.doc.xl.col_size(1, column_size)
+        self.doc.cap()
         self.sheets()
         self.glass()
         self.bands()
@@ -638,8 +646,8 @@ class Specification:
         self.doc.header(val_1, val_2, len(sh) - 1)
         for i in sh:
             #density = getattr(i, "density", 0)
-            gabx = int(getattr(i, "gabx", 0))
-            gaby = int(getattr(i, "gaby", 0))
+            gabx = int(getattr(i, "gabx", 1))
+            gaby = int(getattr(i, "gaby", 1))
             #weight = round(i.sqm * density * (i.thickness / 1000), 1)
             sheet_size = "{0}x{1}x{2}".format(gabx, gaby, int(i.thickness))
             number_sheets = round((i.sqm * i.wastecoeff) / (gabx * gaby / 1000000), 1)
@@ -757,10 +765,10 @@ class Profiles:
         self.tpp = tpp
         if not self.doc.pf.profiles(tpp=self.tpp):
             return
-        self.doc.cap()
         self.doc.new_sheet("Профиля", tab_color="3AE2CE")
         cs = [53, 12.71, 12, 6.86, 8.57]
         self.doc.xl.col_size(1, cs)
+        self.doc.cap()
         self.prof()
 
     def prof(self):
@@ -830,9 +838,12 @@ class Facades:
 
 
 class Report:
-    def __init__(self, db_path):
+    def __init__(self, **kwargs):
+        db_path = kwargs.get("db_path", "")
+        fugue = kwargs.get("fugue", 1)
         self.db = k3r.db.DB(db_path)
-        self.doc = Doc(self.db)
+        self.db.open()
+        self.doc = Doc(self.db, fugue=fugue)
 
     def __del__(self):
         print("Закрываем соединение с базой отчёта")
@@ -855,6 +866,7 @@ class Report:
         self.doc.xl.save(file)
 
 
+
 def start(file_db, pr_path, name):
     if os.path.exists(file_db) == False:
         return False
@@ -867,8 +879,8 @@ def start(file_db, pr_path, name):
 
 
 if __name__ == "__main__":
-    nm = 1
-    fileDB = r"d:\К3\Самара\Самара черновик\{0}\{0}.mdb".format(nm)
-    pr_rep_path = r"d:\К3\Самара\Самара черновик\{}\Reports".format(nm)
+    nm = 5
+    fileDB = r"d:\К3\HL\2020\{0}\{0}.mdb".format(nm)
+    pr_rep_path = r"d:\К3\HL\2020\{}\Reports".format(nm)
     rep_name = "Общий отчёт"
     start(fileDB, pr_rep_path, rep_name)
