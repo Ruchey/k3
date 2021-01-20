@@ -9,7 +9,7 @@ profile модуль работы с профилями
 long модуль для работы с длиномерами
 """
 
-from . import base, db, xl, long, nomenclature, panel, prof, utils, get_tables
+from . import base, db, xl, long, nomenclature, panel, prof, utils, get_tables, variables
 
 __author__ = "Виноградов А.Г."
 __copyright__ = "Copyright 2015, г.Белгород"
@@ -29,4 +29,5 @@ __all__ = [
     "prof.py",
     "utils",
     "get_tables",
+    "variable",
 ]
