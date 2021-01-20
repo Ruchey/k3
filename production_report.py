@@ -31,6 +31,7 @@ class Doc:
         self.xl = k3r.xl.Doc()
         self.gt = k3r.get_tables.Specific(db)
         self.row = 1
+        self.fugue = kwargs.get("fugue", 1)
 
     def new_sheet(self, name, tab_color=None):
         """Создаём новый лист с именем"""
@@ -606,7 +607,7 @@ class Detailing:
         self.end_col = "L" if not self.billet else "N"
 
     def make(self):
-        self.doc.new_sheet("Деталировка", tab_color="595959")
+        self.doc.new_sheet("Общая деталировка", tab_color="595959")
         column_size = [5.29, 43.14, 7, 7, 2.71, 2.71, 2.71, 2.71, 10, 1.29, 1.29, 4.29]
         column_size_billet = [4.86, 32.57, 6.29, 6.29, 6.29, 6.29, 2.71, 2.71, 2.71, 2.71, 10, 1.29, 1.29, 3.29]
         cs = column_size_billet if self.billet else column_size
@@ -858,23 +859,23 @@ class Report:
         profiles.make()
         product = Product(self.doc)
         objects = self.doc.bs.tobjects()
-        objects.sort(key=lambda x: x.placetype)
-        for obj in objects:
-            product.make(obj.unitpos)
+        if len(objects) > 1:
+            objects.sort(key=lambda x: x.placetype)
+            for obj in objects:
+                product.make(obj.unitpos)
 
     def save(self, file):
         self.doc.xl.save(file)
 
 
 
-def start(file_db, pr_path, name):
-    if os.path.exists(file_db) == False:
+def start(db_path, report_dir, report_name):
+    if Path(db_path).exists() == False:
         return False
-    rep = Report(file_db)
+    rep = Report(db_path=db_path)
     rep.make()
-    file = os.path.join(pr_path, "{}.xlsx".format(name))
-    rep.save(file)
-    os.startfile(file)
+    file = Path(report_dir) / Path(report_name).with_suffix(".xlsx")
+    rep.save(str(file))
     return True
 
 
