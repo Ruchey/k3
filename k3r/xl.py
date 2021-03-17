@@ -49,8 +49,8 @@ class Doc:
         self.paper_size = self.ws.PAPERSIZE_A4
         self.right_margin = 0.6
         self.left_margin = 0.6
-        self.bottom_margin = 1.6
-        self.top_margin = 1.6
+        self.bottom_margin = 2
+        self.top_margin = 2
 
         self.theme_color = 2
         self.weight = 2
