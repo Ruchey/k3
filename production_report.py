@@ -39,11 +39,13 @@ class Doc:
         self.xl.sheet_orient = self.xl.PORTRAIT
         self.xl.right_margin = 0.6
         self.xl.left_margin = 0.6
-        self.xl.bottom_margin = 1.6
-        self.xl.top_margin = 1.6
+        self.xl.bottom_margin = 2
+        self.xl.top_margin = 2
         self.xl.center_horizontally = 0
         self.xl.fontsize = 11
         self.xl.new_sheet(name, tab_color)
+        self.xl.ws.oddFooter.right.text = '&P из &N'
+        self.xl.ws.oddFooter.left.text = '&A'
 
     def cap(self, pg=2):
         """Шапка с данными заказа"""
@@ -291,10 +293,10 @@ class Product:
         te = self.doc.bs.telems(self.tpp)
         t_obj = self.doc.bs.tobjects(self.tpp)
         pt = t_obj.placetype
-        sheet_name = "низ_{}".format(self.tpp)
+        sheet_name = "н_{}_{}".format(te.name, self.tpp)
         color = "9FC0E7"
         if pt == 1:
-            sheet_name = "верх_{}".format(self.tpp)
+            sheet_name = "в_{}_{}".format(te.name, self.tpp)
             color = "FCDABC"
         self.doc.new_sheet(sheet_name, tab_color=color)
         self.doc.cap()
