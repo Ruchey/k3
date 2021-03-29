@@ -60,7 +60,7 @@ class Doc:
         addinfo = to.additionalinfo if to.additionalinfo else ""
         data = ""
         if to.orderexpirationdata.year > 2000:
-            data = to.orderexpirationdata.strftime("%m.%d.%y")
+            data = to.orderexpirationdata.strftime("%d.%m.%y")
         val1 = [
             ("Заказ №{0}".format(number)),
             ("Название: {0}".format(name)),
@@ -292,11 +292,13 @@ class Product:
         self.tpp = tpp
         te = self.doc.bs.telems(self.tpp)
         t_obj = self.doc.bs.tobjects(self.tpp)
-        pt = t_obj.placetype
-        sheet_name = "н_{}_{}".format(te.name, self.tpp)
+        t_attributes = self.doc.bs.tattributes(self.tpp)
+        position = t_attributes["Position"]
+        letter_pos = {0: "н", 1: "в"}
+        place_type = t_obj.placetype
+        sheet_name = "{}{}_{}".format(letter_pos[place_type], position, te.name)
         color = "9FC0E7"
-        if pt == 1:
-            sheet_name = "в_{}_{}".format(te.name, self.tpp)
+        if place_type == 1:
             color = "FCDABC"
         self.doc.new_sheet(sheet_name, tab_color=color)
         self.doc.cap()
