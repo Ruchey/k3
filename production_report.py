@@ -39,11 +39,13 @@ class Doc:
         self.xl.sheet_orient = self.xl.PORTRAIT
         self.xl.right_margin = 0.6
         self.xl.left_margin = 0.6
-        self.xl.bottom_margin = 1.6
-        self.xl.top_margin = 1.6
+        self.xl.bottom_margin = 2
+        self.xl.top_margin = 2
         self.xl.center_horizontally = 0
         self.xl.fontsize = 11
         self.xl.new_sheet(name, tab_color)
+        self.xl.ws.oddFooter.right.text = '&P из &N'
+        self.xl.ws.oddFooter.left.text = '&A'
 
     def cap(self, pg=2):
         """Шапка с данными заказа"""
@@ -58,7 +60,7 @@ class Doc:
         addinfo = to.additionalinfo if to.additionalinfo else ""
         data = ""
         if to.orderexpirationdata.year > 2000:
-            data = to.orderexpirationdata.strftime("%m.%d.%y")
+            data = to.orderexpirationdata.strftime("%d.%m.%y")
         val1 = [
             ("Заказ №{0}".format(number)),
             ("Название: {0}".format(name)),
@@ -155,11 +157,11 @@ class Doc:
 
         self.row += 2
 
-    def get_pans(self, pans, tpp=None):
+    def get_pans(self, pans, tpp=None, group=True):
         """Входные данные:
         pans - писок id панелей
         tpp - TopParentPos родитель
-        fugue - размер прифуговки для кромления (default 1mm)
+        group - Группировать ли панели по схожим параметрам
         """
         keys = (
             "cpos",
@@ -247,27 +249,31 @@ class Doc:
                 p_mill,
             )
             l_pans.append(pans)
-        new_list = k3r.utils.group_by_keys(
-            l_pans,
-            (
-                "length",
-                "width",
+        group_by_cpos = k3r.utils.sum_by_key(l_pans, "cpos", "cnt")
+        if group:
+            new_list = k3r.utils.group_by_keys(
+                group_by_cpos,
+                (
+                    "length",
+                    "width",
+                    "cnt",
+                    "slots",
+                    "butts",
+                    "draw",
+                    "band_x1",
+                    "band_x2",
+                    "band_y1",
+                    "band_y2",
+                    "decor",
+                    "mill",
+                ),
                 "cnt",
-                "slots",
-                "butts",
-                "draw",
-                "band_x1",
-                "band_x2",
-                "band_y1",
-                "band_y2",
-                "decor",
-                "mill",
-            ),
-            "cnt",
-            "cpos",
-        )
-        new_list.sort(key=lambda x: (x.length, x.width), reverse=True)
-        return new_list
+                "cpos",
+            )
+            new_list.sort(key=lambda x: (x.length, x.width), reverse=True)
+            return new_list
+        else:
+            return group_by_cpos
 
 
 class Product:
@@ -290,11 +296,14 @@ class Product:
         self.tpp = tpp
         te = self.doc.bs.telems(self.tpp)
         t_obj = self.doc.bs.tobjects(self.tpp)
-        pt = t_obj.placetype
-        sheet_name = "низ_{}".format(self.tpp)
+        t_attributes = self.doc.bs.tattributes(self.tpp)
+        t_drawings = self.doc.bs.tdrawings(self.tpp)
+        position = t_attributes["Position"]
+        letter_pos = {0: "н", 1: "в"}
+        place_type = t_obj.placetype
+        sheet_name = "{}{}_{}".format(letter_pos[place_type], position, te.name)
         color = "9FC0E7"
-        if pt == 1:
-            sheet_name = "верх_{}".format(self.tpp)
+        if place_type == 1:
             color = "FCDABC"
         self.doc.new_sheet(sheet_name, tab_color=color)
         self.doc.cap()
@@ -312,6 +321,10 @@ class Product:
         )
         self.sheets()
         self.doc.row = 1
+        pic_path = t_drawings.drawingname
+        if not self.billet:
+            self.doc.xl.pic_insert(rw=1, col=13, path=pic_path, max_col=7, max_row=49,
+                                   align="c", valign="c")
 
     def sheets(self):
         """Таблица листовых материалов"""
@@ -370,7 +383,10 @@ class Product:
                     lst_for_del = []
                 if not l_pans:
                     continue
-                pans = self.doc.get_pans(l_pans)
+                if not self.billet:
+                    pans = self.doc.get_pans(l_pans)
+                else:
+                    pans = self.doc.get_pans(l_pans, group=False)
                 self.doc.section_heading(self.doc.row, mat.name, style[idx], end_col=self.end_col)
                 self.doc.xl.style_to_range(
                     "A{0}:{2}{1}".format(self.doc.row, self.doc.row + len(pans) - 1, self.end_col),
@@ -859,7 +875,7 @@ class Report:
         profiles.make()
         product = Product(self.doc)
         objects = self.doc.bs.tobjects()
-        if len(objects) > 1:
+        if len(objects) > 0:
             objects.sort(key=lambda x: x.placetype)
             for obj in objects:
                 product.make(obj.unitpos)
@@ -880,8 +896,8 @@ def start(db_path, report_dir, report_name):
 
 
 if __name__ == "__main__":
-    nm = 5
-    fileDB = r"d:\К3\HL\2020\{0}\{0}.mdb".format(nm)
-    pr_rep_path = r"d:\К3\HL\2020\{}\Reports".format(nm)
+    nm = 129
+    fileDB = r"d:\K376Projects\HL\черновик\{0}\{0}.mdb".format(nm)
+    pr_rep_path = r"d:\K376Projects\HL\черновик\{}\Reports".format(nm)
     rep_name = "Общий отчёт"
     start(fileDB, pr_rep_path, rep_name)
