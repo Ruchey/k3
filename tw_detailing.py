@@ -892,7 +892,8 @@ def make(*args, **kwargs):
             k3.mbpanel(k3.k_band, k3.k_on)
             k3.fixing(k3.k_all, k3.k_done)
             if os.path.exists(db_file_path):
-                os.remove(db_file_path)
+                os.remove\
+                    (db_file_path)
             k3.mebelbase(db_file_path)
 
     rep = Report(
