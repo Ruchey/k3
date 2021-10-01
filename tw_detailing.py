@@ -873,6 +873,7 @@ def make(*args, **kwargs):
     joiners = kwargs.get("joiners", True)
     pic_dir = kwargs.get("pic_dir", "")
     over_percent = kwargs.get("over_percent", 10)
+    param = kwargs.get("param", [])
 
     rep_name = "Деталировка"
     folder_rep = "Reports"
@@ -884,6 +885,15 @@ def make(*args, **kwargs):
     rep_file_path = os.path.join(rep_dir, rep_file_name)
     db_file_name = "{}.mdb".format(pr_name)
     db_file_path = os.path.join(pr_dir, db_file_name)
+
+    if param:
+        if param[0] == 1:
+            k3.mbcarcase(k3.k_groupall)
+            k3.mbpanel(k3.k_band, k3.k_on)
+            k3.fixing(k3.k_all, k3.k_done)
+            if os.path.exists(db_file_path):
+                os.remove(db_file_path)
+            k3.mebelbase(db_file_path)
 
     rep = Report(
         db_file_path,
@@ -926,78 +936,63 @@ if __name__ == "__main__":
 
     import k3
 
-    pic_dir = k3.mpathexpand("<Pictures>")
-    cnt_scrap = k3.Var()
-    scrap_rate = k3.Var()
-    margin = k3.Var()
-    block_res = k3.Var()
-    client = k3.Var()
-    joiners = k3.Var()
+    _param = k3.getpar()
+    _pic_dir = k3.mpathexpand("<Pictures>")
+    _cnt_scrap = k3.Var()
+    _scrap_rate = k3.Var()
+    _margin = k3.Var()
+    _block_res = k3.Var()
+    _client = k3.Var()
+    _joiners = k3.Var()
 
-    cnt_scrap.value = 50
-    scrap_rate.value = 2
-    margin.value = 3.0
-    block_res.value = False
-    client.value = False
-    joiners.value = False
-    over_percent = 10
+    _cnt_scrap.value = 50
+    _scrap_rate.value = 2
+    _margin.value = 3.0
+    _block_res.value = False
+    _client.value = False
+    _joiners.value = False
+    _over_percent = 10
 
-    ParList = []
-    ParList.append(
-        [
-            "Создаём отчёт деталировки",
-            "",
-            k3.k_left,
-            k3.k_captionok,
-            "Запустить",
-            k3.k_captioncancel,
-            "Отменить",
-            "Данные отчёта:",
-            k3.k_done,
-        ]
-    )
-    # ParList.append((k3.k_real, k3.k_auto, k3.k_default, cnt_scrap.value,
-    #                 "Колличество фурнитуры, при котором учитывается коэф. брака:", cnt_scrap))
-    # ParList.append((k3.k_real, k3.k_auto, k3.k_default, scrap_rate.value, "Процент брака на фурнитуру:", scrap_rate))
-    # ParList.append((k3.k_real, k3.k_auto, k3.k_default, margin.value, "Коэффициент наценки от себестоимости:", margin))
-    ParList.append(
-        (
-            k3.k_logical,
-            k3.k_default,
-            block_res.value,
-            "Блок расчётов стоимости:",
-            block_res,
-        )
-    )
-    ParList.append(
-        (
-            k3.k_logical,
-            k3.k_default,
-            client.value,
-            "Создавать лист для клиентов:",
-            client,
-        )
-    )
-    ParList.append(
-        (
-            k3.k_logical,
-            k3.k_default,
-            joiners.value,
-            "Создавать лист для столяров:",
-            joiners,
-        )
-    )
-    ParList.append(k3.k_done)
-    WhatNext = k3.setvar(ParList)
-    ParList.clear()
-    if int(WhatNext[0]) == 1:
+    dialog = [(
+        "Создаём отчёт деталировки",
+        "",
+        k3.k_left,
+        k3.k_captionok,
+        "Запустить",
+        k3.k_captioncancel,
+        "Отменить",
+        "Данные отчёта:",
+        k3.k_done,
+    ), (
+        k3.k_logical,
+        k3.k_default,
+        _block_res.value,
+        "Блок расчётов стоимости:",
+        _block_res,
+    ), (
+        k3.k_logical,
+        k3.k_default,
+        _client.value,
+        "Создавать лист для клиентов:",
+        _client,
+    ), (
+        k3.k_logical,
+        k3.k_default,
+        _joiners.value,
+        "Создавать лист для столяров:",
+        _joiners,
+    ), k3.k_done]
+    action = k3.setvar(dialog)
+    dialog.clear()
+    if int(action[0]) == 1:
         make(
-            cnt_scrap=cnt_scrap.value,
-            scrap_rate=scrap_rate.value,
-            margin=margin.value,
-            block_res=block_res.value,
-            client=client.value,
-            joiners=joiners.value,
-            pic_dir=pic_dir,
-            over_percent=over_percent,
+            cnt_scrap=_cnt_scrap.value,
+            scrap_rate=_scrap_rate.value,
+            margin=_margin.value,
+            block_res=_block_res.value,
+            client=_client.value,
+            joiners=_joiners.value,
+            pic_dir=_pic_dir,
+            over_percent=_over_percent,
+            param=_param
         )
