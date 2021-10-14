@@ -1,6 +1,5 @@
 import math
 import k3r
-from collections import namedtuple
 
 
 class Specific:

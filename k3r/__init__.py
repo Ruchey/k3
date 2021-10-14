@@ -26,8 +26,8 @@ __all__ = [
     "long",
     "nomenclature",
     "panel",
-    "prof.py",
+    "prof",
     "utils",
     "get_tables",
-    "variable",
+    "variables",
 ]
