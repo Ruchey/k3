@@ -1,25 +1,21 @@
-# -*- coding: cp1251 -*-
-__author__ = "Виноградов А.Г. г.Белгород  август 2015"
+__author__ = "Р’РёРЅРѕРіСЂР°РґРѕРІ Рђ.Р“. Рі.Р‘РµР»РіРѕСЂРѕРґ  Р°РІРіСѓСЃС‚ 2015"
 
-# Модуль создаёт отчёт "Коммерческое предложение"
+# РњРѕРґСѓР»СЊ СЃРѕР·РґР°С‘С‚ РѕС‚С‡С‘С‚ "РљРѕРјРјРµСЂС‡РµСЃРєРѕРµ РїСЂРµРґР»РѕР¶РµРЅРёРµ"
 
-import k3
-from pyRep.MReports import *
-import datetime
-import configparser
-
-import time
+import os
+import k3r
+from collections import namedtuple, OrderedDict
 
 
 def detali(namesheet, data=None, tabcolor=1):
-    """Создаём документ деталировки"""
-    fnum = "0,00"  # числовой формат
-    frub = "# ##0,00_ р."  # денежный формат
-    fgen = ""  # общий формат
-    txt = "@"  # текстовый формат
-    xlDic = {}  # Словарь, содержащий адреса ячеек по содержимомму
-    object = data[0]  # id оъбекта, на который выдаём деталировку
-    xldic = data[1]  # словарь ссылок на названия материалов из общей спецификации
+    """РЎРѕР·РґР°С‘Рј РґРѕРєСѓРјРµРЅС‚ РґРµС‚Р°Р»РёСЂРѕРІРєРё"""
+    fnum = "0,00"  # С‡РёСЃР»РѕРІРѕР№ С„РѕСЂРјР°С‚
+    frub = "# ##0,00_ СЂ."  # РґРµРЅРµР¶РЅС‹Р№ С„РѕСЂРјР°С‚
+    fgen = ""  # РѕР±С‰РёР№ С„РѕСЂРјР°С‚
+    txt = "@"  # С‚РµРєСЃС‚РѕРІС‹Р№ С„РѕСЂРјР°С‚
+    xlDic = {}  # РЎР»РѕРІР°СЂСЊ, СЃРѕРґРµСЂР¶Р°С‰РёР№ Р°РґСЂРµСЃР° СЏС‡РµРµРє РїРѕ СЃРѕРґРµСЂР¶РёРјРѕРјРјСѓ
+    object = data[0]  # id РѕСЉР±РµРєС‚Р°, РЅР° РєРѕС‚РѕСЂС‹Р№ РІС‹РґР°С‘Рј РґРµС‚Р°Р»РёСЂРѕРІРєСѓ
+    xldic = data[1]  # СЃР»РѕРІР°СЂСЊ СЃСЃС‹Р»РѕРє РЅР° РЅР°Р·РІР°РЅРёСЏ РјР°С‚РµСЂРёР°Р»РѕРІ РёР· РѕР±С‰РµР№ СЃРїРµС†РёС„РёРєР°С†РёРё
     if xldic is None:
         object = None
         unobj = data[0]
@@ -41,25 +37,25 @@ def detali(namesheet, data=None, tabcolor=1):
         name = bs.telems(object)["Name"]
         article = bs.tobjects(object)[0]["Article"]
         val = (
-            "№"
-            + namesheet.replace("Изд.", "")
+            "в„–"
+            + namesheet.replace("РР·Рґ.", "")
             + " "
             + name
-            + (" арт. " + article if article else "")
+            + (" Р°СЂС‚. " + article if article else "")
         )
         xl.header2(rw, 1, val, 8, halign="c", tc=7, ink=2, tas=3)
         rw += 2
-    head = ["№", "Наименование", "", "", "ед.изм", "Кол-во", "Цена", "Стоимость"]
+    head = ["в„–", "РќР°РёРјРµРЅРѕРІР°РЅРёРµ", "", "", "РµРґ.РёР·Рј", "РљРѕР»-РІРѕ", "Р¦РµРЅР°", "РЎС‚РѕРёРјРѕСЃС‚СЊ"]
     xl.header(rw, 1, head, tc=9, tas=0)
     xl.txtformat(rw, 1, "llcccccc")
-    rwsumf = rw + 2  # Первая строка для формулы суммы
+    rwsumf = rw + 2  # РџРµСЂРІР°СЏ СЃС‚СЂРѕРєР° РґР»СЏ С„РѕСЂРјСѓР»С‹ СЃСѓРјРјС‹
     objcnt = 1
     if object:
-        objcnt = bs.telems(object)["Count"]  # Количество данных изделий
-    # --------------------------------------------- Таблица листовых материалов
+        objcnt = bs.telems(object)["Count"]  # РљРѕР»РёС‡РµСЃС‚РІРѕ РґР°РЅРЅС‹С… РёР·РґРµР»РёР№
+    # --------------------------------------------- РўР°Р±Р»РёС†Р° Р»РёСЃС‚РѕРІС‹С… РјР°С‚РµСЂРёР°Р»РѕРІ
     matid = nm.matbyuid(2, object)
     if matid:
-        xl.header2(rw + 1, 1, "Листовые материалы", 8, tc=9, ink=2, tas=3)
+        xl.header2(rw + 1, 1, "Р›РёСЃС‚РѕРІС‹Рµ РјР°С‚РµСЂРёР°Р»С‹", 8, tc=9, ink=2, tas=3)
         rw += 2
         rwgrid = rw
         j = 0
@@ -95,18 +91,18 @@ def detali(namesheet, data=None, tabcolor=1):
             rw += 1
         xl.gridset(tc=5)
         xl.grid(rwgrid, 1, len(val), rw - rwgrid, "lrudvh")
-    # --------------------------------------------- Таблица комплектующих
+    # --------------------------------------------- РўР°Р±Р»РёС†Р° РєРѕРјРїР»РµРєС‚СѓСЋС‰РёС…
     acc = nm.accbyuid(tpp=object)
     j = 0
     kompl = False
     if acc:
-        xl.header2(rw, 1, "Комплектующие", 8, tc=9, ink=2, tas=3)
+        xl.header2(rw, 1, "РљРѕРјРїР»РµРєС‚СѓСЋС‰РёРµ", 8, tc=9, ink=2, tas=3)
         kompl = True
         rw += 1
         rwgrid = rw
         for i in acc:
             j += 1
-            name1 = i[1] + (" арт." + i[2] if i[2] else "")
+            name1 = i[1] + (" Р°СЂС‚." + i[2] if i[2] else "")
             name = name1 if not xldic else "=" + xldic[name1][0]
             price = i[5] if not xldic else "=" + xldic[name1][1]
             val = [j, name, "", "", i[3], i[4] / objcnt, price, "=RC[-2]*RC[-1]"]
@@ -125,12 +121,12 @@ def detali(namesheet, data=None, tabcolor=1):
     accl = nm.acclong(tpp=object)
     if accl:
         if not kompl:
-            xl.header2(rw, 1, "Комплектующие", 8, tc=9, ink=2, tas=3)
+            xl.header2(rw, 1, "РљРѕРјРїР»РµРєС‚СѓСЋС‰РёРµ", 8, tc=9, ink=2, tas=3)
             rw += 1
             rwgrid = rw
         for i in accl:
             j += 1
-            name1 = i[1] + (" арт." + i[2] if i[2] else "")
+            name1 = i[1] + (" Р°СЂС‚." + i[2] if i[2] else "")
             name = name1 if not xldic else "=" + xldic[name1][0]
             price = i[6] if not xldic else "=" + xldic[name1][1]
             val = [
@@ -138,7 +134,7 @@ def detali(namesheet, data=None, tabcolor=1):
                 name,
                 i[3],
                 i[4] / objcnt,
-                "шт",
+                "С€С‚",
                 i[5],
                 price,
                 "=RC[-4]*RC[-2]*RC[-1]",
@@ -155,10 +151,10 @@ def detali(namesheet, data=None, tabcolor=1):
             rw += 1
         xl.gridset(tc=5)
         xl.grid(rwgrid, 1, len(val), rw - rwgrid, "lrudvh")
-    # --------------------------------------------- Таблица профилей
+    # --------------------------------------------- РўР°Р±Р»РёС†Р° РїСЂРѕС„РёР»РµР№
     prof = pf.sumcount(tpp=object)
     if prof:
-        xl.header2(rw, 1, "Профили", 8, tc=9, ink=2, tas=3)
+        xl.header2(rw, 1, "РџСЂРѕС„РёР»Рё", 8, tc=9, ink=2, tas=3)
         rw += 1
         rwgrid = rw
         j = 0
@@ -166,7 +162,7 @@ def detali(namesheet, data=None, tabcolor=1):
             j += 1
             prop = nm.properties(i[0])
             name1 = prop["Name"] + (
-                " арт." + prop["Article"] if prop["Article"] else ""
+                " Р°СЂС‚." + prop["Article"] if prop["Article"] else ""
             )
             name = name1 if not xldic else "=" + xldic[name1][0]
             price = eval(prop["Price"]) if not xldic else "=" + xldic[name1][1]
@@ -198,16 +194,16 @@ def detali(namesheet, data=None, tabcolor=1):
         xl.gridset(tc=5)
         xl.grid(rwgrid, 1, len(val), rw - rwgrid, "lrudvh")
 
-    # --------------------------------------------- Таблица длиномеров
+    # --------------------------------------------- РўР°Р±Р»РёС†Р° РґР»РёРЅРѕРјРµСЂРѕРІ
     longs = ln.sumcount(tpp=object)
-    # Длиномеры из материалов входящих в список листовых, уберём из расчёта
+    # Р”Р»РёРЅРѕРјРµСЂС‹ РёР· РјР°С‚РµСЂРёР°Р»РѕРІ РІС…РѕРґСЏС‰РёС… РІ СЃРїРёСЃРѕРє Р»РёСЃС‚РѕРІС‹С…, СѓР±РµСЂС‘Рј РёР· СЂР°СЃС‡С‘С‚Р°
     for i in range(len(longs)):
         for j in longs:
             if j[1] in matid:
                 ix = longs.index(j)
                 del longs[ix]
     if longs:
-        xl.header2(rw, 1, "Длиномеры", 8, tc=9, ink=2, tas=3)
+        xl.header2(rw, 1, "Р”Р»РёРЅРѕРјРµСЂС‹", 8, tc=9, ink=2, tas=3)
         rw += 1
         rwgrid = rw
         j = 0
@@ -219,7 +215,7 @@ def detali(namesheet, data=None, tabcolor=1):
             name1 = (
                 name0
                 + prop["Name"]
-                + (" арт." + prop["Article"] if prop["Article"] else "")
+                + (" Р°СЂС‚." + prop["Article"] if prop["Article"] else "")
             )
             name = name1 if not xldic else "=" + xldic[name1][0]
             price = eval(prop["Price"]) if not xldic else "=" + xldic[name1][1]
@@ -242,12 +238,12 @@ def detali(namesheet, data=None, tabcolor=1):
         xl.gridset(tc=5)
         xl.grid(rwgrid, 1, len(val), rw - rwgrid, "lrudvh")
 
-    # --------------------------------------------- Таблица кромки
+    # --------------------------------------------- РўР°Р±Р»РёС†Р° РєСЂРѕРјРєРё
     bands = nm.bands(tpp=object)
     if bands:
-        xl.header2(rw, 1, "Кромки", 8, tc=9, ink=2, tas=3)
+        xl.header2(rw, 1, "РљСЂРѕРјРєРё", 8, tc=9, ink=2, tas=3)
         rw += 1
-        head = ["№", "Кромка", "", "Т-на", "Д-на", "К.отх.", "Цена", "Стоимость"]
+        head = ["в„–", "РљСЂРѕРјРєР°", "", "Рў-РЅР°", "Р”-РЅР°", "Рљ.РѕС‚С….", "Р¦РµРЅР°", "РЎС‚РѕРёРјРѕСЃС‚СЊ"]
         xl.header(rw, 1, head, tc=9, tas=0)
         xl.txtformat(rw, 1, "llc")
         rw += 1
@@ -257,7 +253,7 @@ def detali(namesheet, data=None, tabcolor=1):
             j += 1
             prop = nm.properties(i[2])
             name1 = prop["Name"] + (
-                " арт." + prop["Article"] if prop["Article"] else ""
+                " Р°СЂС‚." + prop["Article"] if prop["Article"] else ""
             )
             name = name1 if not xldic else "=" + xldic[name1][0]
             price = eval(prop["Price"]) if not xldic else "=" + xldic[name1][1]
@@ -288,9 +284,9 @@ def detali(namesheet, data=None, tabcolor=1):
             rw += 1
         xl.gridset(tc=5)
         xl.grid(rwgrid, 1, len(val), rw - rwgrid, "lrudvh")
-    rwsume = rw - 1  # Последняя строка для формулы суммы
+    rwsume = rw - 1  # РџРѕСЃР»РµРґРЅСЏСЏ СЃС‚СЂРѕРєР° РґР»СЏ С„РѕСЂРјСѓР»С‹ СЃСѓРјРјС‹
     cells = xl.num2col(8) + str(rwsumf) + ":" + xl.num2col(8) + str(rwsume)
-    xl.header(rw + 1, 7, ["Итого:", "=SUM({})".format(cells)], tc=10, tas=0)
+    xl.header(rw + 1, 7, ["РС‚РѕРіРѕ:", "=SUM({})".format(cells)], tc=10, tas=0)
     unobj = unobj if object is None else object
     prlst[unobj] = "'" + namesheet + "'" + "!" + xl.num2col(8) + str(rw + 1)
 
@@ -298,22 +294,22 @@ def detali(namesheet, data=None, tabcolor=1):
 
 
 def kompred(xlDic, tabcolor=1):
-    """Документ коммерческого предложения"""
-    fnum = "0,00"  # числовой формат
-    frub = "# ##0_ р."  # денежный формат
-    fgen = ""  # общий формат
-    txt = "@"  # текстовый формат
+    """Р”РѕРєСѓРјРµРЅС‚ РєРѕРјРјРµСЂС‡РµСЃРєРѕРіРѕ РїСЂРµРґР»РѕР¶РµРЅРёСЏ"""
+    fnum = "0,00"  # С‡РёСЃР»РѕРІРѕР№ С„РѕСЂРјР°С‚
+    frub = "# ##0_ СЂ."  # РґРµРЅРµР¶РЅС‹Р№ С„РѕСЂРјР°С‚
+    fgen = ""  # РѕР±С‰РёР№ С„РѕСЂРјР°С‚
+    txt = "@"  # С‚РµРєСЃС‚РѕРІС‹Р№ С„РѕСЂРјР°С‚
     xl.sheetorient = xl.xlconst["xlLandscape"]
     xl.rightmargin = 0.6
     xl.leftmargin = 0.6
     xl.bottommargin = 1.6
     xl.topmargin = 1.6
     xl.centerhorizontally = 0
-    xl.new_sheet("КП", tabcolor)
+    xl.new_sheet("РљРџ", tabcolor)
     DetTab = [6.5, 21, 35.6, 10, 6.57, 11, 44, 11, 6]
     xl.columnsize(1, DetTab)
     rw = 1
-    # Печатаем шапку
+    # РџРµС‡Р°С‚Р°РµРј С€Р°РїРєСѓ
     nm = Nomenclature(db)
     bs = Base(db)
     pf = Profile(db)
@@ -332,7 +328,7 @@ def kompred(xlDic, tabcolor=1):
         rw += 1
     except:
         pass
-    head = "Коммерческое предложение от {}".format(
+    head = "РљРѕРјРјРµСЂС‡РµСЃРєРѕРµ РїСЂРµРґР»РѕР¶РµРЅРёРµ РѕС‚ {}".format(
         datetime.date.today().strftime("%d.%m.%Y")
     )
     xl.header(rw, 1, head, tc=1, tas=0)
@@ -341,14 +337,14 @@ def kompred(xlDic, tabcolor=1):
     xl.grid(1, 1, 7, 2, "lrudh")
     rw += 2
     head = [
-        "№ п/п",
-        "Изделие",
-        "Техническое описание",
-        "Цена",
-        "Кол-во",
-        "Стоимость",
-        "Эскиз",
-        "С-сть",
+        "в„– Рї/Рї",
+        "РР·РґРµР»РёРµ",
+        "РўРµС…РЅРёС‡РµСЃРєРѕРµ РѕРїРёСЃР°РЅРёРµ",
+        "Р¦РµРЅР°",
+        "РљРѕР»-РІРѕ",
+        "РЎС‚РѕРёРјРѕСЃС‚СЊ",
+        "Р­СЃРєРёР·",
+        "РЎ-СЃС‚СЊ",
         3,
     ]
     xl.header(rw, 1, head, tas=0)
@@ -358,83 +354,83 @@ def kompred(xlDic, tabcolor=1):
     j = 0
     price = "=RC[4]*RC[5]"
     sumcost = "=RC[-2]*RC[-1]"
-    rwsumf = rw  # Первая строка для формулы суммы
-    picxy = {}  # Словарь координат ячеек для вставки картинок
+    rwsumf = rw  # РџРµСЂРІР°СЏ СЃС‚СЂРѕРєР° РґР»СЏ С„РѕСЂРјСѓР»С‹ СЃСѓРјРјС‹
+    picxy = {}  # РЎР»РѕРІР°СЂСЊ РєРѕРѕСЂРґРёРЅР°С‚ СЏС‡РµРµРє РґР»СЏ РІСЃС‚Р°РІРєРё РєР°СЂС‚РёРЅРѕРє
     for i in lstobj:
         j += 1
         up = i[0]
         iobj = bs.tobjects(up)[0]
         elems = bs.telems(up)
-        name = elems["Name"] + (" арт." + iobj["Article"] if iobj["Article"] else "")
+        name = elems["Name"] + (" Р°СЂС‚." + iobj["Article"] if iobj["Article"] else "")
         cnt = elems["Count"]
         cost = "=" + prlst[up]
         tech_over = (
             '="'
-            + "Размер (ШхГхВ) "
+            + "Р Р°Р·РјРµСЂ (РЁС…Р“С…Р’) "
             + str(round(elems["XUnit"]))
             + "x"
             + str(round(elems["YUnit"]))
             + "x"
             + str(round(elems["ZUnit"]))
-            + " мм"
+            + " РјРј"
             + '; "'
         )
-        # Добавляем в описание материалы
+        # Р”РѕР±Р°РІР»СЏРµРј РІ РѕРїРёСЃР°РЅРёРµ РјР°С‚РµСЂРёР°Р»С‹
         matid = nm.matbyuid(2, up)
         if matid:
-            tech_over += '&"Материалы: "'
+            tech_over += '&"РњР°С‚РµСЂРёР°Р»С‹: "'
             for i in matid:
                 prop = nm.properties(i)
                 if prop.get("NoKP") != 1:
                     title = prop["Name"]
                     adr = xlDic[title][0]
                     tech_over += "&" + 'IF(OFFSET({0},0,-1)>0,{0}&"; ","")'.format(adr)
-        # Добавляем в описание комплектующие
+        # Р”РѕР±Р°РІР»СЏРµРј РІ РѕРїРёСЃР°РЅРёРµ РєРѕРјРїР»РµРєС‚СѓСЋС‰РёРµ
         acc = nm.accbyuid(tpp=up)
         kompl = False
         if acc:
             kompl = True
-            tech_over += '&"Комплектующие: "'
+            tech_over += '&"РљРѕРјРїР»РµРєС‚СѓСЋС‰РёРµ: "'
             for i in acc:
                 prop = nm.properties(i[0])
                 if prop.get("NoKP") != 1:
-                    title = i[1] + (" арт." + i[2] if i[2] else "")
+                    title = i[1] + (" Р°СЂС‚." + i[2] if i[2] else "")
                     adr = xlDic[title][0]
                     tech_over += "&" + 'IF(OFFSET({0},0,-1)>0,{0}&"; ","")'.format(adr)
         accl = nm.acclong(tpp=up)
         if accl:
             if not kompl:
-                tech_over += '&"Комплектующие: "'
+                tech_over += '&"РљРѕРјРїР»РµРєС‚СѓСЋС‰РёРµ: "'
             for i in accl:
                 prop = nm.properties(i[0])
                 if prop.get("NoKP") != 1:
-                    title = i[1] + (" арт." + i[2] if i[2] else "")
+                    title = i[1] + (" Р°СЂС‚." + i[2] if i[2] else "")
                     adr = xlDic[title][0]
                     tech_over += "&" + 'IF(OFFSET({0},0,-1)>0,{0}&"; ","")'.format(adr)
 
-        # Добавляем в описание профили
+        # Р”РѕР±Р°РІР»СЏРµРј РІ РѕРїРёСЃР°РЅРёРµ РїСЂРѕС„РёР»Рё
         prof = pf.sumcount(tpp=up)
         if prof:
-            tech_over += '&"Профили: "'
+            tech_over += '&"РџСЂРѕС„РёР»Рё: "'
             for i in prof:
                 prop = nm.properties(i[0])
                 if prop.get("NoKP") != 1:
                     title = prop["Name"] + (
-                        " арт." + prop["Article"] if prop["Article"] else ""
+                        " Р°СЂС‚." + prop["Article"] if prop["Article"] else ""
                     )
                     adr = xlDic[title][0]
                     tech_over += "&" + 'IF(OFFSET({0},0,-1)>0,{0}&"; ","")'.format(adr)
 
-        # Добавляем в описание длиномеры
+        # Р”РѕР±Р°РІР»СЏРµРј РІ РѕРїРёСЃР°РЅРёРµ РґР»РёРЅРѕРјРµСЂС‹
         longs = ln.sumcount(tpp=up)
-        # Длиномеры из материалов входящих в список листовых, уберём из расчёта
+        # Р”Р»РёРЅРѕРјРµСЂС‹ РёР· РјР°С‚РµСЂРёР°Р»РѕРІ РІС…РѕРґСЏС‰РёС… РІ СЃРїРёСЃРѕРє Р»РёСЃС‚РѕРІС‹С…, СѓР±РµСЂС‘Рј РёР· СЂР°СЃС‡С‘С‚Р°
         for i in range(len(longs)):
             for ji in longs:
                 if ji[1] in matid:
                     ix = longs.index(ji)
                     del longs[ix]
         if longs:
-            tech_over += '&"Длиномеры: "'
+            tech_over += '&"Р”Р»РёРЅРѕРјРµСЂС‹: "'
             for i in longs:
                 prop = nm.properties(i[1])
                 tng = bs.tngoods(i[3])[0]
@@ -442,20 +438,20 @@ def kompred(xlDic, tabcolor=1):
                 title = (
                     name0
                     + prop["Name"]
-                    + (" арт." + prop["Article"] if prop["Article"] else "")
+                    + (" Р°СЂС‚." + prop["Article"] if prop["Article"] else "")
                 )
                 adr = xlDic[title][0]
                 tech_over += "&" + 'IF(OFFSET({0},0,-1)>0,{0}&"; ","")'.format(adr)
 
-        # Добавляем в описание кромки
+        # Р”РѕР±Р°РІР»СЏРµРј РІ РѕРїРёСЃР°РЅРёРµ РєСЂРѕРјРєРё
         bands = nm.bands(tpp=up)
         if bands:
-            tech_over += '&"Кромки: "'
+            tech_over += '&"РљСЂРѕРјРєРё: "'
             for i in bands:
                 prop = nm.properties(i[2])
                 if prop.get("NoKP") != 1:
                     title = prop["Name"] + (
-                        " арт." + prop["Article"] if prop["Article"] else ""
+                        " Р°СЂС‚." + prop["Article"] if prop["Article"] else ""
                     )
                     adr = xlDic[title][0]
                     tech_over += "&" + 'IF(OFFSET({0},0,-1)>0,{0}&"; ","")'.format(adr)
@@ -474,16 +470,16 @@ def kompred(xlDic, tabcolor=1):
         rowheight = xl.wb.ActiveSheet.Rows(rw).RowHeight
         if rowheight < 200:
             xl.wb.ActiveSheet.Rows(rw).RowHeight = 200
-        rwsume = rw  # Последняя строка для формулы суммы
+        rwsume = rw  # РџРѕСЃР»РµРґРЅСЏСЏ СЃС‚СЂРѕРєР° РґР»СЏ С„РѕСЂРјСѓР»С‹ СЃСѓРјРјС‹
         rw += 1
 
     xl.gridset(tc=5)
     xl.grid(rwsumf, 1, len(val), rw - rwsumf, "lrudvh")
     cells = xl.num2col(6) + str(rwsumf) + ":" + xl.num2col(6) + str(rwsume)
-    xl.header(rw + 1, 4, ["Итого:", "", "=SUM({})".format(cells)], tc=10, tas=0)
+    xl.header(rw + 1, 4, ["РС‚РѕРіРѕ:", "", "=SUM({})".format(cells)], tc=10, tas=0)
     cells = xl.num2col(8) + str(rwsumf) + ":" + xl.num2col(8) + str(rwsume)
     xl.header(rw + 1, 8, ["=SUM({})".format(cells)], tc=10, tas=0)
-    # Вставим все картинки в свои ячейки
+    # Р’СЃС‚Р°РІРёРј РІСЃРµ РєР°СЂС‚РёРЅРєРё РІ СЃРІРѕРё СЏС‡РµР№РєРё
     for i in bs.tdrawings():
         file = i["DrawingName"]
         up = i["UnitPos"]
@@ -495,41 +491,42 @@ def kompred(xlDic, tabcolor=1):
 
 
 def start():
-    xldic = detali("Д-ка", [obj[0]["UnitPos"], None], 7)
+    xldic = detali("Р”-РєР°", [obj[0]["UnitPos"], None], 7)
     objcount = 1
     if len(obj) > 1:
         for i in lstobj:
             up = i[0]
-            shname = "п." + str(objcount)
+            shname = "Рї." + str(objcount)
             shname = shname[:31]
             detali(shname, [up, xldic])
             endsheet = shname
             objcount += 1
     tmp = kompred(xldic, tabcolor=7)
     if len(obj) > 1:
-        xl.movesheet("Д-ка", endsheet)
-    xl.save(os.path.join(projreppath, "Коммерческое предложение"))
+        xl.movesheet("Р”-РєР°", endsheet)
+    xl.save(os.path.join(projreppath, "РљРѕРјРјРµСЂС‡РµСЃРєРѕРµ РїСЂРµРґР»РѕР¶РµРЅРёРµ"))
 
 
 if __name__ == "__main__":
-    # file = (r'D:\PKMProjects73\12\12.mdb')
-    # datafile = (r"c:\Program Files (86)\GeoS\K3-Мебель ПКМ 7.3\Bin\Reports\PyReports\FirmInfo.ini")
-    starttime = time.time()
-    params = k3.getpar()
-    file = params[0]
-    datafile = params[1]
+
+    import k3
+
+
+    _param = k3.getpar()
+    file = param[0]
+    datafile = param[1]
     projpath = os.path.dirname(file)
     reportpath = os.path.dirname(datafile)
     projreppath = os.path.join(projpath, "Reports")
     db = DB()
-    tmp = db.connect(file)  # Подключаемся к базе выгрузки
+    tmp = db.connect(file)  # РџРѕРґРєР»СЋС‡Р°РµРјСЃСЏ Рє Р±Р°Р·Рµ РІС‹РіСЂСѓР·РєРё
     if tmp == "NoFile":
-        print("Ошибка подключения к базе данных")
+        print("РћС€РёР±РєР° РїРѕРґРєР»СЋС‡РµРЅРёСЏ Рє Р±Р°Р·Рµ РґР°РЅРЅС‹С…")
         raise SystemExit(1)
 
-    xl = ExcelDoc()  # Создаём объект excel
+    xl = ExcelDoc()  # РЎРѕР·РґР°С‘Рј РѕР±СЉРµРєС‚ excel
     xl.Excel.Application.ScreenUpdating = False
-    prlst = {}  # Словарь ссылок на ячейки итоговых сумм
+    prlst = {}  # РЎР»РѕРІР°СЂСЊ СЃСЃС‹Р»РѕРє РЅР° СЏС‡РµР№РєРё РёС‚РѕРіРѕРІС‹С… СЃСѓРјРј
     nm = Nomenclature(db)
     bs = Base(db)
     obj = bs.tobjects()
@@ -542,7 +539,7 @@ if __name__ == "__main__":
     try:
         start()
     except:
-        print("Произошла ошибка во время создания отчёта")
+        print("РџСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР° РІРѕ РІСЂРµРјСЏ СЃРѕР·РґР°РЅРёСЏ РѕС‚С‡С‘С‚Р°")
     xl.Excel.Application.ScreenUpdating = True
     xl.Excel.Visible = 1
     db.disconnect()

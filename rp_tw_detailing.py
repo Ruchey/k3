@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import k3r
 from collections import namedtuple, OrderedDict
