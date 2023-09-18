@@ -898,8 +898,7 @@ def start(db_path, report_dir, report_name):
 
 
 if __name__ == "__main__":
-    nm = 129
-    fileDB = r"d:\K376Projects\HL\черновик\{0}\{0}.mdb".format(nm)
-    pr_rep_path = r"d:\K376Projects\HL\черновик\{}\Reports".format(nm)
-    rep_name = "Общий отчёт"
+    fileDB = r"c:\Users\Александр\Downloads\Telegram Desktop\13.mdb"
+    pr_rep_path = r"c:\Users\Александр\Downloads\Telegram Desktop"
+    rep_name = "Производственный отчёт"
     start(fileDB, pr_rep_path, rep_name)
