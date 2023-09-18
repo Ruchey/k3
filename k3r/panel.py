@@ -3,6 +3,7 @@
 import math
 
 from . import utils
+from .db import get_version
 from collections import namedtuple
 from functools import lru_cache
 
@@ -416,6 +417,16 @@ class Panel:
         radius = 0
         chord = 0
         form = self.form(unitpos)  # узнаём форму панели
+        if get_version(self.db) > 3:
+            hold31 = 1
+            hold32 = 2
+            hold33 = 3
+            hold34 = 4
+        else:
+            hold31 = 0
+            hold32 = 1
+            hold33 = 2
+            hold34 = 3            
 
         if form == 1:  # дуга по хорде
             sql = (
@@ -427,12 +438,12 @@ class Panel:
                 "tpm1.UnitPos={0} AND tpm1.ParamName='ArcChord.Chord' "
                 "AND tpm2.UnitPos={0} AND tpm2.ParamName='ArcChord.Caving' "
                 "AND tpm3.UnitPos={0} AND tpm3.ParamName='BendAxis' "
-                "AND tpm4.UnitPos={0} AND (tpm4.ParamName='ShavSide' AND tpm4.Hold3=3) "
-                "AND tpm5.UnitPos={0} AND (tpm5.ParamName='ShavSide' AND tpm5.Hold3=1) "
-                "AND tpm6.UnitPos={0} AND (tpm6.ParamName='ShavSide' AND tpm6.Hold3=0) "
-                "AND tpm7.UnitPos={0} AND (tpm7.ParamName='ShavSide' AND tpm7.Hold3=2) "
+                "AND tpm4.UnitPos={0} AND (tpm4.ParamName='ShavSide' AND tpm4.Hold3={4}) "
+                "AND tpm5.UnitPos={0} AND (tpm5.ParamName='ShavSide' AND tpm5.Hold3={2}) "
+                "AND tpm6.UnitPos={0} AND (tpm6.ParamName='ShavSide' AND tpm6.Hold3={1}) "
+                "AND tpm7.UnitPos={0} AND (tpm7.ParamName='ShavSide' AND tpm7.Hold3={3}) "
                 "AND tpm8.UnitPos={0} AND tpm8.ParamName='Length'"
-                "AND tpm9.UnitPos={0} AND tpm9.ParamName='Width'".format(unitpos)
+                "AND tpm9.UnitPos={0} AND tpm9.ParamName='Width'".format(unitpos, hold31, hold32, hold33, hold34)
             )
             res = self.db.rs(sql)
             chord_0 = res[0][0]
@@ -481,13 +492,13 @@ class Panel:
                 "AND tpm2.UnitPos={0} AND tpm2.ParamName='LinesArc.L2' "
                 "AND tpm3.UnitPos={0} AND tpm3.ParamName='LinesArc.R' "
                 "AND tpm4.UnitPos={0} AND tpm4.ParamName='BendAxis' "
-                "AND tpm5.UnitPos={0} AND (tpm5.ParamName='ShavSide' AND tpm5.Hold3=3) "
-                "AND tpm6.UnitPos={0} AND (tpm6.ParamName='ShavSide' AND tpm6.Hold3=1) "
-                "AND tpm7.UnitPos={0} AND (tpm7.ParamName='ShavSide' AND tpm7.Hold3=0) "
-                "AND tpm8.UnitPos={0} AND (tpm8.ParamName='ShavSide' AND tpm8.Hold3=2) "
+                "AND tpm5.UnitPos={0} AND (tpm5.ParamName='ShavSide' AND tpm5.Hold3={4}) "
+                "AND tpm6.UnitPos={0} AND (tpm6.ParamName='ShavSide' AND tpm6.Hold3={2}) "
+                "AND tpm7.UnitPos={0} AND (tpm7.ParamName='ShavSide' AND tpm7.Hold3={1}) "
+                "AND tpm8.UnitPos={0} AND (tpm8.ParamName='ShavSide' AND tpm8.Hold3={3}) "
                 "AND tpm9.UnitPos={0} AND tpm9.ParamName='LinesArc.A' "
                 "AND tpm10.UnitPos={0} AND tpm10.ParamName='Length' "
-                "AND tpm11.UnitPos={0} AND tpm11.ParamName='Width'".format(unitpos)
+                "AND tpm11.UnitPos={0} AND tpm11.ParamName='Width'".format(unitpos, hold31, hold32, hold33, hold34)
             )
 
             res = self.db.rs(sql)

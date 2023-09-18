@@ -23,3 +23,13 @@ class DB:
         self.cur.execute(sql)
         rows = self.cur.fetchall()
         return rows
+
+
+def get_version(db):
+    """Вернуть верисию базу"""
+    sql = "SELECT TVersion.MinorVer FROM TVersion"
+    res = db.rs(sql)
+    if res:
+        return res[0][0]
+    else:
+        return 0
